@@ -1,111 +1,160 @@
 var app = app || {};
 
-(function() {
+(app.Engine = function(global) {
     'use strict';
 
+    var doc = global.document;
+    var win = global.window;
+    var canvas = doc.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+    var running = false;
+    var lastTime = Date.now();
+    var dt = 0;
+    var sprite = '';
+    var entities = [];
+
     /**
-     * @constructor
-     **/
-    app.Engine = function() {
+     * Initializes the game canvas.
+     */
+    function initialize() {
+        setCanvasSize(500, 644);
+        doc.getElementById('gameboard').appendChild(canvas);
+        ctx.beginPath();
+        ctx.rect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "black";
+        ctx.fill();
+        ctx.drawImage(Resources.get(sprite), 0, 0);
+        running = true;
+        lastTime = Date.now();
+        main();
+    }
 
-        var self = this;
+    /**
+     * Set the canvas size
+     * @param {integer} width
+     * @param {integer} height
+     */
+    function setCanvasSize(width, height) {
+        canvas.width = width;
+        canvas.height = height;
+    }
 
-        self.doc = document;
-        self.win = window;
-        self.canvas = self.doc.createElement('canvas');
-        self.ctx = self.canvas.getContext('2d');
-        self.running = false;
-        self.lastTime = Date.now();
-        self.dt = 0;
-        self.entities = [];
+    /**
+     * Set the background image file for the canvas
+     *
+     * @param imageSrc
+     */
+    function setSprite(imageSrc) {
+        sprite = imageSrc;
+    }
 
-        self.initialize = function() {
-            self.setCanvasSize(808, 606);
-            self.doc.getElementById('gameboard').appendChild(this.canvas);
-            self.ctx.beginPath();
-            self.ctx.rect(0, 0, self.canvas.width, self.canvas.height);
-            self.ctx.fillStyle = "black";
-            self.ctx.fill();
-        };
+    /**
+     * Gets the size of the canvas
+     * @returns {Array} width, height
+     */
+    function getCanvasSize() {
+        return [canvas.width, canvas.height];
+    }
 
-        /**
-         * Set the canvas size
-         * @param {integer} width
-         * @param {integer} height
-         */
-        self.setCanvasSize = function(width, height) {
-            self.canvas.width = width;
-            self.canvas.height = height;
-        };
+    /**
+     * Append child to element with specific ID
+     *
+     * @param {string} id Selector for element canvas to be added to
+     */
+    function appendCanvasToElement(id) {
+        doc.getElementById(id).appendChild(canvas);
+    }
 
-        /**
-         * Gets the size of the canvas
-         * @returns {Array} width, height
-         */
-        self.getCanvasSize = function() {
-            return [self.canvas.width, self.canvas.height];
-        };
+    /**
+     * Toggles the running attribute between true and false
+     */
+    function toggleRunning() {
+        running = !running;
+    }
 
-        /**
-         * Append child to element with specific ID
-         *
-         * @param {string} id Selector for element canvas to be added to
-         */
-        self.appendCanvasToElement = function(id) {
-            self.doc.getElementById(id).appendChild(this.canvas);
-        };
+    /**
+     * Set listeners specific to the game
+     */
+    win.addEventListener('focus', function () {
+        unPause();
+    });
 
-        self.toggleRunning = function() {
-            self.running = !self.running;
-        };
+    win.addEventListener('blur', function () {
+        pause();
+    });
 
-        this.win.addEventListener('focus', function() {
-            self.unPause();
+    /**
+     * @describe Pauses the engine
+     */
+    function pause() {
+        running = false;
+    }
+
+    /**
+     * @describe Unpauses the engine
+     */
+    function unPause() {
+        running = true;
+        lastTime = Date.now();
+        main();
+    }
+
+    function update(dt, lastTime) {
+        updateEntities(dt, lastTime);
+    }
+
+    function updateEntities(dt) {
+        entities.forEach(function (entity) {
+            entity.update(dt, lastTime);
+        });
+    }
+
+    function render() {
+
+        ctx.font = '900 24px Arial';
+        ctx.fillStyle = 'red';
+        ctx.drawImage(Resources.get('images/space.png'), 0, 0);
+        ctx.fillText('1UP', 40, 25);
+        ctx.fillText('HIGH SCORE', ((canvas.width /2) - 75), 25);
+        ctx.fillStyle = 'white';
+        ctx.fillText('######', 40, 50);
+        ctx.fillText('######', ((canvas.width / 2) - 75), 50);
+        entities.forEach(function (entity) {
+            entity.render(ctx);
         });
 
-        this.win.addEventListener('blur', function() {
-            self.pause();
-        });
+    }
 
-        self.pause = function() {
-            self.toggleRunning();
-        };
+    /**
+     * The main function to run the game
+     *
+     * @describe
+     */
+    function main() {
 
-        self.unPause = function() {
-            self.toggleRunning();
-        };
+        if (!running) {
+            return;
+        }
+        var now = Date.now();
+        dt = (now - lastTime) / 1000.0;
 
-        self.update = function(dt) {
+        update(dt, lastTime);
+        render(ctx);
 
-        };
+        lastTime = now;
 
-        self.render = function() {
+        win.requestAnimationFrame(main);
 
+    }
 
-        };
+    return {
+        entities: entities,
+        setSpriteImage: setSprite,
+        initialize: initialize,
+        setCanvasSize: setCanvasSize,
+        getCanvasSize: getCanvasSize,
+        appendCanvasToElement: appendCanvasToElement
 
-        /**
-         * The main function to run the game
-         *
-         * @describe
-         */
-        self.main = function() {
-
-            if (!self.running) {
-                return;
-            }
-
-            var now = Date.now();
-            self.dt = (now - self.lastTime) / 1000.0;
-
-            self.update(self.dt);
-            self.render();
-
-            self.lastTime = now;
-
-            self.win.requestAnimationFrame(self.main);
-        };
     };
 
-})();
-
+})(this);
