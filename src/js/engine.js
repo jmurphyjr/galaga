@@ -12,11 +12,12 @@ var app = app || {};
     var dt = 0;
     var sprite = '';
     var entities = [];
+    var player;
 
     /**
      * Initializes the game canvas.
      */
-    function initialize() {
+    function init() {
         setCanvasSize(500, 644);
         doc.getElementById('gameboard').appendChild(canvas);
         ctx.beginPath();
@@ -26,6 +27,8 @@ var app = app || {};
         ctx.drawImage(Resources.get(sprite), 0, 0);
         running = true;
         lastTime = Date.now();
+
+        player = new app.Player(new app.Point(250, 540), 'white');
         main();
     }
 
@@ -54,6 +57,14 @@ var app = app || {};
      */
     function getCanvasSize() {
         return [canvas.width, canvas.height];
+    }
+
+    function getDt() {
+        return dt;
+    }
+
+    function getLastTime() {
+        return lastTime;
     }
 
     /**
@@ -103,10 +114,11 @@ var app = app || {};
         updateEntities(dt, lastTime);
     }
 
-    function updateEntities(dt) {
+    function updateEntities(dt, lastTime) {
         entities.forEach(function (entity) {
             entity.update(dt, lastTime);
         });
+        // player.update(dt, lastTime);
     }
 
     function render() {
@@ -115,13 +127,18 @@ var app = app || {};
         ctx.fillStyle = 'red';
         ctx.drawImage(Resources.get('images/space.png'), 0, 0);
         ctx.fillText('1UP', 40, 25);
-        ctx.fillText('HIGH SCORE', ((canvas.width /2) - 75), 25);
+        ctx.fillText('HIGH SCORE', ((canvas.width / 2) - 75), 25);
         ctx.fillStyle = 'white';
         ctx.fillText('######', 40, 50);
         ctx.fillText('######', ((canvas.width / 2) - 75), 50);
         entities.forEach(function (entity) {
             entity.render(ctx);
         });
+        // player.render(ctx);
+
+    }
+
+    function collisionDetection() {
 
     }
 
@@ -147,14 +164,17 @@ var app = app || {};
 
     }
 
+    // app.Engine = Engine;
+
     return {
         entities: entities,
         setSpriteImage: setSprite,
-        initialize: initialize,
+        init: init,
         setCanvasSize: setCanvasSize,
         getCanvasSize: getCanvasSize,
         appendCanvasToElement: appendCanvasToElement
 
     };
+
 
 })(this);

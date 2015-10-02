@@ -1,6 +1,7 @@
 /**
  * Enemy test suite
 **/
+Resources.load('src/images/galaga-green-enemy.png');
 
 describe('App Enemy', function() {
 
@@ -8,7 +9,7 @@ describe('App Enemy', function() {
     // var app = app || {};
 
     beforeEach(function() {
-        enemy = new app.Enemy();
+        enemy = new app.Enemy(new app.Point(80, 100), 'green');
         // enemy.initialize();
     });
 
@@ -21,12 +22,12 @@ describe('App Enemy', function() {
     });
 
     it('should be able to set the sprite attribute to a string', function() {
-        var spriteImage = 'images/enemy-bug.png';
+        var spriteImage = 'images/galaga-green-enemy.png';
 
         enemy.setSpriteImage(spriteImage);
 
         expect(enemy.setSpriteImage).toBeDefined();
-        expect(enemy.sprite).toBe('images/enemy-bug.png');
+        expect(enemy.sprite).toBe('images/galaga-green-enemy.png');
     });
 
     it('should throw error if parameter is not string', function() {

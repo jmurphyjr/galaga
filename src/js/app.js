@@ -1,69 +1,68 @@
 var app = app || {};
 
-// var document = this.window;
-
-// $(function () {
-
-var engine = new app.Engine(this.window);
+var engine = new app.Engine(window);
 engine.setSpriteImage('images/space.png');
 
-engine.entities.push(new app.Enemy('images/galaga-green-enemy.png', [80,100]));
-engine.entities.push(new app.Enemy('images/galaga-green-enemy.png', [110,100]));
-engine.entities.push(new app.Enemy('images/galaga-green-enemy.png', [140,100]));
-engine.entities.push(new app.Enemy('images/galaga-green-enemy.png', [170,100]));
-engine.entities.push(new app.Enemy('images/galaga-green-enemy.png', [200,100]));
-engine.entities.push(new app.Enemy('images/galaga-green-enemy.png', [230,100]));
-engine.entities.push(new app.Enemy('images/galaga-green-enemy.png', [260,100]));
-engine.entities.push(new app.Enemy('images/galaga-green-enemy.png', [290,100]));
-engine.entities.push(new app.Enemy('images/galaga-green-enemy.png', [320,100]));
-engine.entities.push(new app.Enemy('images/galaga-green-enemy.png', [350,100]));
+var loadEntities = function() {
+    engine.entities.push(new app.Enemy(new app.Point(80, 100), 'green'));
+    engine.entities.push(new app.Enemy(new app.Point(110, 100), 'green'));
+    engine.entities.push(new app.Enemy(new app.Point(140, 100), 'green'));
+    engine.entities.push(new app.Enemy(new app.Point(170, 100), 'green'));
+    engine.entities.push(new app.Enemy(new app.Point(200, 100), 'green'));
+    engine.entities.push(new app.Enemy(new app.Point(230, 100), 'green'));
+    engine.entities.push(new app.Enemy(new app.Point(260, 100), 'green'));
+    engine.entities.push(new app.Enemy(new app.Point(290, 100), 'green'));
+    engine.entities.push(new app.Enemy(new app.Point(320, 100), 'green'));
+    engine.entities.push(new app.Enemy(new app.Point(350, 100), 'green'));
 
-engine.entities.push(new app.Enemy('images/galaga-red-blue-pink-enemy.png', [80,140]));
-engine.entities.push(new app.Enemy('images/galaga-red-blue-pink-enemy.png', [110,140]));
-engine.entities.push(new app.Enemy('images/galaga-red-blue-pink-enemy.png', [140,140]));
-engine.entities.push(new app.Enemy('images/galaga-red-blue-pink-enemy.png', [170,140]));
-engine.entities.push(new app.Enemy('images/galaga-red-blue-pink-enemy.png', [200,140]));
-engine.entities.push(new app.Enemy('images/galaga-red-blue-pink-enemy.png', [230,140]));
-engine.entities.push(new app.Enemy('images/galaga-red-blue-pink-enemy.png', [260,140]));
-engine.entities.push(new app.Enemy('images/galaga-red-blue-pink-enemy.png', [290,140]));
-engine.entities.push(new app.Enemy('images/galaga-red-blue-pink-enemy.png', [320,140]));
-engine.entities.push(new app.Enemy('images/galaga-red-blue-pink-enemy.png', [350,140]));
+    engine.entities.push(new app.Enemy(new app.Point(80, 140), 'redblue'));
+    engine.entities.push(new app.Enemy(new app.Point(110, 140), 'redblue'));
+    engine.entities.push(new app.Enemy(new app.Point(140, 140), 'redblue'));
+    engine.entities.push(new app.Enemy(new app.Point(170, 140), 'redblue'));
+    engine.entities.push(new app.Enemy(new app.Point(200, 140), 'redblue'));
+    engine.entities.push(new app.Enemy(new app.Point(230, 140), 'redblue'));
+    engine.entities.push(new app.Enemy(new app.Point(260, 140), 'redblue'));
+    engine.entities.push(new app.Enemy(new app.Point(290, 140), 'redblue'));
+    engine.entities.push(new app.Enemy(new app.Point(320, 140), 'redblue'));
+    engine.entities.push(new app.Enemy(new app.Point(350, 140), 'redblue'));
 
-engine.entities.push(new app.Enemy('images/galaga-red-blue-pink-enemy.png', [80,170]));
-engine.entities.push(new app.Enemy('images/galaga-red-blue-pink-enemy.png', [110,170]));
-engine.entities.push(new app.Enemy('images/galaga-red-blue-pink-enemy.png', [140,170]));
-engine.entities.push(new app.Enemy('images/galaga-red-blue-pink-enemy.png', [170,170]));
-engine.entities.push(new app.Enemy('images/galaga-red-blue-pink-enemy.png', [200,170]));
-engine.entities.push(new app.Enemy('images/galaga-red-blue-pink-enemy.png', [230,170]));
-engine.entities.push(new app.Enemy('images/galaga-red-blue-pink-enemy.png', [260,170]));
-engine.entities.push(new app.Enemy('images/galaga-red-blue-pink-enemy.png', [290,170]));
-engine.entities.push(new app.Enemy('images/galaga-red-blue-pink-enemy.png', [320,170]));
-engine.entities.push(new app.Enemy('images/galaga-red-blue-pink-enemy.png', [350,170]));
+    engine.entities.push(new app.Enemy(new app.Point(80, 170), 'redblue'));
+    engine.entities.push(new app.Enemy(new app.Point(110, 170), 'redblue'));
+    engine.entities.push(new app.Enemy(new app.Point(140, 170), 'redblue'));
+    engine.entities.push(new app.Enemy(new app.Point(170, 170), 'redblue'));
+    engine.entities.push(new app.Enemy(new app.Point(200, 170), 'redblue'));
+    engine.entities.push(new app.Enemy(new app.Point(230, 170), 'redblue'));
+    engine.entities.push(new app.Enemy(new app.Point(260, 170), 'redblue'));
+    engine.entities.push(new app.Enemy(new app.Point(290, 170), 'redblue'));
+    engine.entities.push(new app.Enemy(new app.Point(320, 170), 'redblue'));
+    engine.entities.push(new app.Enemy(new app.Point(350, 170), 'redblue'));
 
-engine.entities.push(new app.Enemy('images/galaga-blue-yellow-red-enemy.png', [80,200]));
-engine.entities.push(new app.Enemy('images/galaga-blue-yellow-red-enemy.png', [110,200]));
-engine.entities.push(new app.Enemy('images/galaga-blue-yellow-red-enemy.png', [140,200]));
-engine.entities.push(new app.Enemy('images/galaga-blue-yellow-red-enemy.png', [170,200]));
-engine.entities.push(new app.Enemy('images/galaga-blue-yellow-red-enemy.png', [200,200]));
-engine.entities.push(new app.Enemy('images/galaga-blue-yellow-red-enemy.png', [230,200]));
-engine.entities.push(new app.Enemy('images/galaga-blue-yellow-red-enemy.png', [260,200]));
-engine.entities.push(new app.Enemy('images/galaga-blue-yellow-red-enemy.png', [290,200]));
-engine.entities.push(new app.Enemy('images/galaga-blue-yellow-red-enemy.png', [320,200]));
-engine.entities.push(new app.Enemy('images/galaga-blue-yellow-red-enemy.png', [350,200]));
+    engine.entities.push(new app.Enemy(new app.Point(80, 200), 'blueyellow'));
+    engine.entities.push(new app.Enemy(new app.Point(110, 200), 'blueyellow'));
+    engine.entities.push(new app.Enemy(new app.Point(140, 200), 'blueyellow'));
+    engine.entities.push(new app.Enemy(new app.Point(170, 200), 'blueyellow'));
+    engine.entities.push(new app.Enemy(new app.Point(200, 200), 'blueyellow'));
+    engine.entities.push(new app.Enemy(new app.Point(230, 200), 'blueyellow'));
+    engine.entities.push(new app.Enemy(new app.Point(260, 200), 'blueyellow'));
+    engine.entities.push(new app.Enemy(new app.Point(290, 200), 'blueyellow'));
+    engine.entities.push(new app.Enemy(new app.Point(320, 200), 'blueyellow'));
+    engine.entities.push(new app.Enemy(new app.Point(350, 200), 'blueyellow'));
 
-engine.entities.push(new app.Enemy('images/galaga-blue-yellow-red-enemy.png', [80,230]));
-engine.entities.push(new app.Enemy('images/galaga-blue-yellow-red-enemy.png', [110,230]));
-engine.entities.push(new app.Enemy('images/galaga-blue-yellow-red-enemy.png', [140,230]));
-engine.entities.push(new app.Enemy('images/galaga-blue-yellow-red-enemy.png', [170,230]));
-engine.entities.push(new app.Enemy('images/galaga-blue-yellow-red-enemy.png', [200,230]));
-engine.entities.push(new app.Enemy('images/galaga-blue-yellow-red-enemy.png', [230,230]));
-engine.entities.push(new app.Enemy('images/galaga-blue-yellow-red-enemy.png', [260,230]));
-engine.entities.push(new app.Enemy('images/galaga-blue-yellow-red-enemy.png', [290,230]));
-engine.entities.push(new app.Enemy('images/galaga-blue-yellow-red-enemy.png', [320,230]));
-engine.entities.push(new app.Enemy('images/galaga-blue-yellow-red-enemy.png', [350,230]));
+    engine.entities.push(new app.Enemy(new app.Point(80, 230), 'blueyellow'));
+    engine.entities.push(new app.Enemy(new app.Point(110, 230), 'blueyellow'));
+    engine.entities.push(new app.Enemy(new app.Point(140, 230), 'blueyellow'));
+    engine.entities.push(new app.Enemy(new app.Point(170, 230), 'blueyellow'));
+    engine.entities.push(new app.Enemy(new app.Point(200, 230), 'blueyellow'));
+    engine.entities.push(new app.Enemy(new app.Point(230, 230), 'blueyellow'));
+    engine.entities.push(new app.Enemy(new app.Point(260, 230), 'blueyellow'));
+    engine.entities.push(new app.Enemy(new app.Point(290, 230), 'blueyellow'));
+    engine.entities.push(new app.Enemy(new app.Point(320, 230), 'blueyellow'));
+    engine.entities.push(new app.Enemy(new app.Point(350, 230), 'blueyellow'));
 
-player = new app.Player('images/galaga-white-fighter.png', [300,500]);
-engine.entities.push(player);
+    player = new app.Player(new app.Point(250, 540), 'white');
+    engine.entities.push(player);
+};
+
 Resources.load([
     'images/space.png',
     'images/galaga-red-fighter.png',
@@ -72,9 +71,12 @@ Resources.load([
     'images/galaga-blue-yellow-red-enemy.png',
     'images/galaga-blue-enemy.png',
     'images/galaga-green-enemy.png',
-    'images/galaga-green-enemy-filmstrip.png',
+    'images/galaga-green-enemy-spriteSheet.png',
     'images/galaga-bullet.png'
 ]);
+Resources.onReady(loadEntities);
+Resources.onReady(engine.init);
+
 
 var gameState = 'INTRO';
 
@@ -94,20 +96,6 @@ var handleInput = function (key) {
             // engine.main();
             break;
         }
-        //case 'left':
-        //{
-        //    console.log('Move left');
-        //    // player.direction = -1;
-        //    // player.move = true;
-        //    break;
-        //}
-        //case 'right':
-        //{
-        //    console.log('Move right');
-        //    // player.direction = +1;
-        //    // player.move = true;
-        //    break;
-        //}
         case 'up':
         {
             console.log('Move up');
@@ -138,7 +126,7 @@ document.addEventListener('keydown', function (e) {
 });
 
 var breakMovement = function(key) {
-    switch(key) {
+    switch (key) {
         case 'left':
         {
             player.move = false;
@@ -161,3 +149,5 @@ document.addEventListener('keyup', function (e) {
     breakMovement(allowedKeys[e.keyCode]);
     player.keys[e.keyCode] = false;
 });
+// engine.initialize();
+gameState = 'PLAY';
