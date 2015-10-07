@@ -35,6 +35,17 @@ var app = app || {};
          * @type Arguments
          */
         this.setRow(1);
+        this.scoreValue = 400;
+        
+        /**
+         * Green enemies must be hit twice to be destroyed. After first
+         * hit, green enemies turn blue.
+         * @property greenHealthCounter
+         * @type {Number}
+         * @default 2
+         */
+        this.HealthCounter = 2;
+
 
     }
 
@@ -45,6 +56,39 @@ var app = app || {};
     //   this.currentPosition.x = 100;
     //   this.currentPosition.y = 400;
     // };
+    
+        /**
+     * Set destroy to true on entity.
+     * @method
+     */
+    GreenEnemy.prototype.setDestroy = function() {
+        this.HealthCounter--;
+        if (this.HealthCounter === 0) {
+            this.destroyed = true;
+        }
+        else {
+            this.sprite = this.sprites.blue;
+        }
+    };
+    
+    GreenEnemy.prototype.getPointValue = function() {
+        if (this.destroyed) {
+            return this.scoreValue;
+        }
+        else {
+            return 0;
+        }
+    };
+    
+    GreenEnemy.prototype.reset = function() {
+        this.destroyed = false;
+        this.deleteMe = false;
+        this.sprite = this.sprites[this.type];
+        this.HealthCounter = 2;
+        this.frameCounter = 0;
+        this.state = 'SLIDE';
+    };
+
 
     app.GreenEnemy = GreenEnemy;
 }());

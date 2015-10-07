@@ -33,6 +33,7 @@ var app = app || {};
         this.move = false;
         this.fireTimer = 0;
         this.fireSpacing = 250;
+        this.score = 0;
     };
     Player.prototype = Object.create(app.Entity.prototype);
     Player.prototype.constructor = Player;
@@ -50,7 +51,7 @@ var app = app || {};
     };
     Player.prototype.update = function(dt, lastTime) {
         if (this.missiles.length > 0) {
-            for (var i = 0; i < this.missiles.length; i++) {
+            for (var i = this.missiles.length - 1; i >= 0; i--) {
                 if (this.missiles[i].destroyed) {
                     this.missiles.splice(i, 1);
                     console.log('missile deleted');

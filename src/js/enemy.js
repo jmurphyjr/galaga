@@ -2,7 +2,50 @@ var app = app || {};
 (function() {
     'use strict';
     // Define enemy sprites and their attributes
-    var sprites = {
+    var states = {
+        // attack the start point is currentPosition.
+        attack: {
+            //            controlPoints: {
+            //                p1: new app.Point(70, -50),
+            //                p2: new app.Point(0, 250),
+            //                p3: new app.Point(140, 350),
+            //                p4: new app.Point(140, 350),
+            //                p5: new app.Point(500, 300),
+            //                p6: new app.Point(100, 250)
+            //            }
+            controlPoints: {
+                p1: new app.Point(70, -50),
+                p2: new app.Point(0, 250),
+                p3: new app.Point(140, 350),
+                p4: new app.Point(140, 350),
+                p5: new app.Point(500, 300),
+                p6: new app.Point(100, 250)
+            }
+        }
+    };
+
+    var __nextObjId = 1;
+
+    function objectId(obj) {
+        if (obj === null) {
+            return null;
+        }
+        if (obj.__objId === null) {
+            obj.__objId = __nextObjId++;
+        }
+        return obj.__objId;
+
+    }
+
+    /**
+     * @description Represents a Game Enemy
+     * @param {Point} startingPosition
+     * @param {string} type
+     * @constructor
+     */
+    var Enemy = function(startingPosition, type) {
+        
+        this.sprites = {
         green: {
             image: 'images/galaga-green-enemy.png',
             size: {
@@ -108,52 +151,14 @@ var app = app || {};
             }
         }
     };
-    var states = {
-        // attack the start point is currentPosition.
-        attack: {
-            //            controlPoints: {
-            //                p1: new app.Point(70, -50),
-            //                p2: new app.Point(0, 250),
-            //                p3: new app.Point(140, 350),
-            //                p4: new app.Point(140, 350),
-            //                p5: new app.Point(500, 300),
-            //                p6: new app.Point(100, 250)
-            //            }
-            controlPoints: {
-                p1: new app.Point(70, -50),
-                p2: new app.Point(0, 250),
-                p3: new app.Point(140, 350),
-                p4: new app.Point(140, 350),
-                p5: new app.Point(500, 300),
-                p6: new app.Point(100, 250)
-            }
-        }
-    };
 
-    var __nextObjId = 1;
-
-    function objectId(obj) {
-        if (obj === null) {
-            return null;
-        }
-        if (obj.__objId === null) {
-            obj.__objId = __nextObjId++;
-        }
-        return obj.__objId;
-
-    }
-
-    /**
-     * @description Represents a Game Enemy
-     * @param {Point} startingPosition
-     * @param {string} sprite
-     * @constructor
-     */
-    var Enemy = function(startingPosition, type, context) {
+        
+        
+        
         /**
          * Enemies have all attributes of an Entity, plus
          */
-        app.Entity.call(this, sprites[type], startingPosition, type);
+        app.Entity.call(this, this.sprites[type], startingPosition, type);
 
         this.__objId = null;
         this.__objId = objectId(this);
@@ -222,10 +227,26 @@ var app = app || {};
 
         this.explosionTimer = 0;
         this.explosionDelay = 25;
+        
+        this.scoreValue = 200;
+        
     };
     Enemy.prototype = Object.create(app.Entity.prototype);
     Enemy.prototype.constructor = Enemy;
 
+    Enemy.prototype.getPointValue = function() {
+        return this.scoreValue;
+    };
+    
+    Enemy.prototype.reset = function() {
+        this.deleteMe = false;
+        this.destroyed = false;
+        this.sprite = this.sprites[this.type];
+        this.frameCounter = 0;
+        this.state = 'SLIDE';
+        
+    };
+    
     Enemy.prototype.setRow = function(row) {
         this.row = row;
     };
@@ -248,7 +269,7 @@ var app = app || {};
         if (typeof sprite !== 'string') {
             throw new Error('sprite must be string type');
         }
-        this.sprite = sprites[sprite];
+        this.sprite = this.sprites[sprite];
     };
 
 
@@ -267,7 +288,7 @@ var app = app || {};
     Enemy.prototype.update = function(dt, lastTime, refPoint, xmove, ymove, colOffset, rowOffset) {
 
         if (this.destroyed) {
-            this.sprite = sprites.explosion;
+            this.sprite = this.sprites.explosion;
             if (this.frameCounter === null) {
                 this.frameCounter = 0;
                 this.explosionTimer = lastTime + this.explosionDelay;
@@ -277,7 +298,7 @@ var app = app || {};
                     this.explosionTimer = lastTime + this.explosionDelay;
                 }
             }
-            console.log(Object.keys(this.sprite.frames).length);
+
             if (this.frameCounter >= (Object.keys(this.sprite.frames).length - 1)) {
                 console.log('Entity id: ' + this.__objId + '  frameCounter: ' + this.frameCounter);
                 this.deleteMe = true;

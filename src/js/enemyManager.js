@@ -13,14 +13,7 @@ var app = app || {};
          * @default 10
          */
         this.maxGreen = 4;
-        /**
-         * Green enemies must be hit twice to be destroyed. After first
-         * hit, green enemies turn blue.
-         * @property greenHealthCounter
-         * @type {Number}
-         * @default 2
-         */
-        this.greenHealthCounter = 2;
+
         /**
          * The maximum number of blue enemies active in the game.
          * @property blueEnemies
@@ -100,6 +93,7 @@ var app = app || {};
          * @type {Array}
          */
         this._enemies = [];
+        this._destroyedEnemies = [];
         /**
          *
          * @property _row
@@ -207,11 +201,26 @@ var app = app || {};
         var xmove = 0;
         var ymove = 0;
 
+        for (var i = this._enemies.length - 1; i >= 0; i--) {
+                if (this._enemies[i].deleteMe) {
+                    var removedItem = null;
+                    this._enemies[i].reset();
+                    removedItem = this._enemies.splice(i, 1)
+                    this._destroyedEnemies.push(removedItem[0]);
+                }
+        }
+
+        if (this._enemies.length === 0) {
+            // this.createEnemies();
+            this._enemies = this._destroyedEnemies;
+            this._destroyedEnemies = [];
+            this._brigadeCurrentPoint = this._brigadeStartingPoint.clone();
+            this._brigadeSlideDirection = +1;
+        };
         var dead = this._enemies.filter(this.isDestroyed);
         var alive = this._enemies.filter(this.isAlive);
 
         if (dead.length > 0) {
-            console.log(dead.length);
             dead.forEach(function(entity) {
                 entity.setSprite('explosion');
                 console.log('Frame Counter: ' + entity.frameCounter);
@@ -219,7 +228,7 @@ var app = app || {};
                 console.log('Entity id: ' + entity.__objId + '  frameCounter: ' + entity.frameCounter);
             });
         }
-        // console.log(this._brigadeCurrentPoint);
+
         if (this.brigadeState === 'SLIDE') {
             if (this._brigadeSlideDirection === 1 && (this._brigadeCurrentPoint.x - this._brigadeStartingPoint.x) > 40) {
                 this._brigadeSlideDirection = -1;

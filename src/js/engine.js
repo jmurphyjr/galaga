@@ -11,6 +11,7 @@ var app = app || {};
     var sprite = '';
     var entities = [];
     var player = null;
+    var highScore = 0;
     console.trace();
     /**
      * Initializes the game canvas.
@@ -109,17 +110,21 @@ var app = app || {};
 
     function update(dt, lastTime) {
         updateEntities(dt, lastTime);
+        if (player.score > highScore) {
+            highScore = player.score;
+        }
     }
 
     function updateEntities(dt, lastTime) {
         player.update(dt, lastTime);
         // entities.forEach(function(entity) {
-        for (var i = 0; i < entities.length; i++) {
+        for (var i = entities.length - 1; i >= 0; i--) {
             // entity.update(dt, lastTime);
             // if (collisionDetection(entity)) {
             if (collisionDetection(entities[i])) {
                 console.log('Collission Detected');
                 console.log(entities[i]);
+                // player.score++;
             }
             entities[i].update(dt, lastTime);
 
@@ -131,10 +136,12 @@ var app = app || {};
         ctx.fillStyle = 'red';
         ctx.drawImage(Resources.get('images/space.png'), 0, 0);
         ctx.fillText('1UP', 40, 25);
-        ctx.fillText('HIGH SCORE', ((canvas.width / 2) - 75), 25);
+        ctx.fillText('HIGH SCORE', ((canvas.width / 2)), 25);
         ctx.fillStyle = 'white';
-        ctx.fillText('######', 40, 50);
-        ctx.fillText('######', ((canvas.width / 2) - 75), 50);
+        ctx.textAlign = 'center';
+        ctx.fillText(player.score, 40, 50);
+        ctx.fillText(highScore, ((canvas.width / 2)), 50);
+        ctx.textAlign = 'center';
         entities.forEach(function(entity) {
             entity.render(ctx);
         });
@@ -155,6 +162,7 @@ var app = app || {};
                         // Only destroy the first entity the missile collides with and destroy the missile.
                         e._enemies[t].setDestroy();
                         player.missiles[i].setDestroy();
+                        player.score += e._enemies[t].getPointValue();
                         return true;
                     }
                 }
@@ -178,7 +186,7 @@ var app = app || {};
         }
         var now = Date.now();
         dt = (now - lastTime) / 1000.0;
-        entities[0]._enemies = entities[0]._enemies.filter(purgeDestroyedEnemies);
+        // entities[0]._enemies = entities[0]._enemies.filter(purgeDestroyedEnemies);
         update(dt, lastTime);
         render(ctx);
         lastTime = now;
