@@ -7,47 +7,76 @@ var app = app || {};
 (function() {
     'use strict';
 
-    function Game() {
+    function Game(global) {
 
         /**
-         * The maximum number of green enemies active in the game.
-         * @property greenEnemies
-         * @type Number
-         * @default 10
+         * The Root Element
+         * @property root
+         * @type Object
          */
-        this.maxGreenEnemies = 10;
+        var _root = null;
 
         /**
-         * Green enemies must be hit twice to be destroyed. After first
-         * hit, green enemies turn blue.
-         * @property greenEnemiesHP
-         * @type {number}
-         * @default 2
+         * The engine that will animate the game objects.
+         * @property _engine
+         * @type Engine
          */
-        this.greenEnemiesHP = 2;
-
-        /**
-         * The maximum number of blue enemies active in the game.
-         * @property blueEnemies
-         * @type Number
-         * @default 20
-         */
-        this.maxBlueEnemies = 20;
-
-        /**
-         * The maximum number of yellow enemies active in the game.
-         * @property yellowEnemies
-         * @type Number
-         * @default 20
-         */
-        this.maxYellowEnemies = 20;
+        var _engine = null;
 
         /**
          * The maximum number of ACTIVE players on screen
          * @property maxPlayers
          * @type Number
-         * @default 2
+         * @default 1
          */
-        this.maxPlayers = 2;
+        var maxPlayers = 1;
+
+        /**
+         * The player array
+         * @property player
+         * @type Array
+         *
+         */
+        var _player = [];
+
+        /**
+         * The enemyManager object
+         * @property enemyManager
+         * @type Array
+         */
+        var enemyManager = {};
+
+
     }
-}());
+
+    Game.prototype.init = function(global) {
+
+        this.root = global;
+        this._engine = new app.Engine(global);
+        this._engine.setCanvasSize(500, 644);
+
+        this.addPlayer();
+        // this._engine.addEntity(this._player);
+        this.enemyManager = new app.EnemyManager(500, 644);
+        this.enemyManager.createEnemies();
+
+        // this.player = new app.Player(new app.Point(250, 540), 'white');
+        this._engine.addEntity(this.enemyManager);
+
+        this.setCanvasBackground('images/space.png');
+        this._engine.init();
+    };
+
+    Game.prototype.setCanvasBackground = function(bg) {
+        this._engine.setSpriteImage(bg);
+    };
+
+    Game.prototype.addPlayer = function() {
+        var pStartPos = new app.Point(this._engine.getCanvasSize()[0] / 2, this._engine.getCanvasSize()[1] * 0.85);
+        this._player = new app.Player(pStartPos, 'white');
+        this._player.init(this.root);
+        this._engine.addPlayer(this._player);
+    };
+
+    app.Game = Game;
+}(this));

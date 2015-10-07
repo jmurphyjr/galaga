@@ -4,7 +4,7 @@
  * @param addOn
  * @returns {number}
  */
-var variableInteger = function(multiplier, addOn) {
+ var variableInteger = function(multiplier, addOn) {
     var x = Math.floor((Math.random() * multiplier) + addOn);
 
     if (x > multiplier) {
@@ -36,7 +36,7 @@ function B1_2_DT(t) { return 2 * t; }
 // Cubic Bezier Curve for 3 Control Points, total 4 points.
 function B0_3(t) { return (1 - t) * (1 - t) * (1 - t); }
 function B1_3(t) { return 3 * ((1 - t) * (1 - t)) * t; }
-function B2_3(t) { return 3 * (1 - t) * ( t * t); }
+function B2_3(t) { return 3 * (1 - t) * (t * t); }
 function B3_3(t) { return t * t * t; }
 
 // Derivative for Cubic Bezier Curve
@@ -57,7 +57,7 @@ function B2_3_DT(t) { return 3 * t * t; }
  * @returns {Point} Point on the curve at the given t value
  */
 var bezierPoint = function() {
-    var t = Array.prototype.slice.call(arguments,arguments.length - 1);
+    var t = Array.prototype.slice.call(arguments, arguments.length - 1);
     var args = Array.prototype.slice.call(arguments, 0, arguments.length - 1);
 
     var x = 0;
@@ -77,7 +77,7 @@ var bezierPoint = function() {
         x = (1 - t) * args[0].x + t * args[1].x;
         y = (1 - t) * args[0].y + t * args[1].x;
     }
-    return new app.Point(x,y);
+    return new app.Point(x, y);
 };
 
 /**
@@ -115,13 +115,11 @@ var bezierTangent = function() {
 var calculateBezierCurvePoints = function() {
     var savedArguments = [];
     var points = [];
-    if (arguments.length === 4) {
-        for (var t = 0; t <= 1; t = t + 0.01) {
-            savedArguments = Array.prototype.slice.call(arguments);
-            savedArguments.push(t);
-            points.push(bezierPoint.apply(null, savedArguments));
-            savedArguments = [];
-        }
+    for (var t = 0; t <= 1; t = t + 0.01) {
+        savedArguments = Array.prototype.slice.call(arguments);
+        savedArguments.push(t);
+        points.push(bezierPoint.apply(null, savedArguments));
+        savedArguments = [];
     }
     return points;
 };
@@ -129,13 +127,124 @@ var calculateBezierCurvePoints = function() {
 var calculateBezierCurveAngles = function() {
     var savedArguments = [];
     var angles = [];
-    if (arguments.length === 4) {
-        for (var t = 0; t <= 1; t = t + 0.01) {
-            savedArguments = Array.prototype.slice.call(arguments);
-            savedArguments.push(t);
-            angles.push(bezierTangent.apply(null, savedArguments));
-            savedArguments = [];
-        }
+    for (var t = 0; t <= 1; t = t + 0.01) {
+        savedArguments = Array.prototype.slice.call(arguments);
+        savedArguments.push(t);
+        angles.push(bezierTangent.apply(null, savedArguments));
+        savedArguments = [];
     }
     return angles;
+};
+
+var pushApply = Function.apply.bind([].push);
+var sliceCall = Function.call.bind([].slice);
+
+Object.defineProperty(Array.prototype, 'pushArrayMembers', {
+    value: function() {
+        for (var i = 0; i < arguments.length; i++) {
+            var toAdd = arguments[i];
+            for (var n = 0; n < toAdd.length; n += 300) {
+                pushApply(this, sliceCall(toAdd, n, n + 300));
+            }
+        }
+    }
+});
+
+/**
+ *
+ * @param {Number} r Radius of circle
+ * @param {Point} origin Center point of the circle.
+ * @param {String} rotationDirection Direction of rotation either 'cw' or 'ccw'
+ * @returns {Array|calculateCirclePoints.points}
+ */
+var calculateCirclePoints = function() {
+    var r = arguments[0];
+    var origin = arguments[1];
+    var rotationDirection = arguments[2] || 'ccw';
+    var x = 0;
+    var y = 0;
+    var points = [];
+
+    if (rotationDirection === 'cw') {
+        for (var i = 0; i <= (Math.PI * 2); i += 0.1) {
+            x = (origin.x) + r * Math.cos((Math.PI / 2) + i);
+            y = (origin.y) + r * Math.sin((Math.PI / 2) + i);
+            points.push(new app.Point(x, y));
+        }
+    }
+    else if (rotationDirection === 'ccw') {
+        for (var j = 0; j <= (Math.PI * 2); j += 0.1) {
+            x = (origin.x) + r * Math.sin(Math.PI * 2 + j);
+            y = (origin.y - r) + r * Math.cos(Math.PI * 2 + j);
+            points.push(new app.Point(x, y));
+        }
+    }
+    return points;
+};
+
+var calculateCircleAngles = function() {
+    var r = arguments[0];
+    var p = arguments[1];
+    var angles = [];
+
+    var startPointX = p[0].x;
+    var startPointY = p[0].y;
+
+    for (var i = 0; i < p.length; i++) {
+        var deltaX = p[i].x - startPointX;
+        var deltaY = p[i].y - startPointY + r;
+        angles.push((Math.atan2(deltaY, deltaX)));
+    }
+    return angles;
+
+};
+
+var calculateControlPoints = function(type) {
+    // type - Triangular
+    var point;
+    var cp = [];
+    if (arguments.length === 2) {
+        point = arguments[1];
+    }
+
+    if (type === 'triangle') {
+        // point is the current location of the entity.
+        // end points will be equal.
+        cp.push(point);
+
+        cp.push(new app.Point(point.x - 400, 600));
+        cp.push(new app.Point(point.x + 400, 600));
+        cp.push(point);
+    }
+
+    return cp;
+};
+
+var calculateLoopPoints = function() {
+    var startPoint = arguments[0];
+    var points = [];
+    var ang = [];
+    var cp1 = null;
+    var cp2 = null;
+    var cp3 = null;
+    var cp4 = null;
+
+    // quadratic curve - starts at currentPoint
+    cp1 = new app.Point(startPoint.x - 300, startPoint.y + 300);
+    cp2 = new app.Point(startPoint.x, startPoint.y + 300);
+    points.pushArrayMembers(calculateBezierCurvePoints(startPoint, cp1, cp2));
+    ang.pushArrayMembers(calculateBezierCurveAngles(startPoint, cp1, cp2));
+
+    // loop (circle)
+    var cirPoints = [];
+    cirPoints.pushArrayMembers(calculateCirclePoints(50, cp2, 'ccw'));
+    points.pushArrayMembers(cirPoints);
+    ang.pushArrayMembers(calculateCircleAngles(50, cirPoints));
+
+    // quadratic curve - stops at currentPoint
+    cp3 = new app.Point(startPoint.x + 300, startPoint.y + 300);
+    points.pushArrayMembers(calculateBezierCurvePoints(cp2, cp3, startPoint));
+    ang.pushArrayMembers(calculateBezierCurveAngles(cp2, cp3, startPoint));
+
+    return [points, ang];
 };

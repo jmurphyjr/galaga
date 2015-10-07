@@ -41,7 +41,7 @@ var app = app || {};
     };
 
     Point.prototype.toString = function() {
-        return 'Point (x=' + this.x + ' y=' + this.y + ')';
+        return '[Point (x=' + this.x + ' y=' + this.y + ')]';
     };
 
     app.Point = Point;

@@ -11,6 +11,7 @@ var gulp = require('gulp');
 var PluginOptions = {
     camelize: true
 };
+
 var gulpLoadPlugins = require('gulp-load-plugins');
 
 var plugins = gulpLoadPlugins(PluginOptions);
@@ -28,6 +29,11 @@ var dirs = pkg['kavalla-configs'].directories;
 gulp.task('archive:create_archive_dir', function () {
     fs.mkdirSync(path.resolve(dirs.archive), '0755');
 });
+
+var onError = function (err) {
+    // gutil.beep();
+    console.log(err.message);
+};
 
 gulp.task('archive:zip', function (done) {
 
@@ -131,7 +137,9 @@ gulp.task('lint:js', function () {
       'gulpfile.js',
       dirs.src + '/js/*.js',
       dirs.test + '/*.js'
-    ]).pipe(plugins.jscs())
+    ]).pipe(plugins.plumber({
+        errorHandler: onError
+    })).pipe(plugins.jscs())
     .pipe(plugins.jshint())
     .pipe(plugins.jshint.reporter('jshint-stylish'))
     // .pipe(plugins.jshint.reporter('fail'))
@@ -146,7 +154,7 @@ gulp.task('jasmine', function() {
 
 gulp.task('watch', function() {
     plugins.livereload.listen();
-    var filesToWatch = ['SpecRunner.html', 'src/**/*.js', 'spec/**/*_spec.js'];
+    var filesToWatch = ['SpecRunner.html', 'gulpfile.js', 'src/**/*.js', 'spec/**/*_spec.js'];
     gulp.watch(filesToWatch, ['lint:js']);
 });
 // ---------------------------------------------------------------------
