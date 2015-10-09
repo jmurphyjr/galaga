@@ -73,7 +73,7 @@ var app = app || {};
      * @param {Number} inRow
      */
     Entity.prototype.setRow = function(inRow) {
-        if (inRow === '' || (isNaN(inRow)) || (inRow < 1) || (inRow > 5)) {
+        if (inRow.toString() === '' || (isNaN(inRow)) || (inRow < 1) || (inRow > 5)) {
             throw 'inRow value is not a valid: ' + inRow.toString();
         } else {
             this.row = Number(inRow);
@@ -85,7 +85,7 @@ var app = app || {};
      * @param {Number} col
      */
     Entity.prototype.setColumn = function(col) {
-        if (col === '' || (isNaN(col)) || (col < 1) || (col > 10)) {
+        if (col.toString() === '' || (isNaN(col)) || (col < 1) || (col > 10)) {
             throw 'col value is not a valid: ' + col.toString();
         } else {
             this.column = Number(col);
@@ -97,7 +97,7 @@ var app = app || {};
      * @returns {Point|*}
      */
     Entity.prototype.getCurrentPosition = function() {
-        return this.currentPostion;
+        return this.currentPosition;
     };
     /**
      * Get the last position of this entity
@@ -105,7 +105,7 @@ var app = app || {};
      * @returns {Point|*}
      */
     Entity.prototype.getLastPosition = function() {
-        return this.lastPostion;
+        return this.lastPosition;
     };
     /**
      * Get starting position for this entity
@@ -131,7 +131,7 @@ var app = app || {};
      */
     Entity.prototype.render = function(ctx) {
         if (this.hasSpriteSheet) {
-            ctx.drawImage(Resources.get(this.sprite.image), this.sprite.sprite[this.spriteFrame].x, this.sprite.sprite[this.spriteFrame].y, this.sprite.sprite[this.spriteFrame].w, this.sprite.sprite[this.spriteFrame].h, this.currentPosition.x, this.currentPosition.y, this.sprite.sprite[this.spriteFrame].w * this.sprite.scale, this.sprite.sprite[this.spriteFrame].h * this.sprite.scale);
+            ctx.drawImage(Resources.get(this.sprite.image), this.sprite.sprite[this.spriteFrame].x, this.sprite.sprite[this.spriteFrame].y, this.sprite.sprite[this.spriteFrame].width, this.sprite.sprite[this.spriteFrame].h, this.currentPosition.x, this.currentPosition.y, this.sprite.sprite[this.spriteFrame].w * this.sprite.scale, this.sprite.sprite[this.spriteFrame].height * this.sprite.scale);
         } else {
             ctx.drawImage(Resources.get(this.sprite.image), this.currentPosition.x, this.currentPosition.y, this.sprite.size.width * this.sprite.scale, this.sprite.size.height * this.sprite.scale);
         }

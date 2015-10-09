@@ -111,7 +111,7 @@ describe('Application Engine', function() {
 
         it('should be able to set canvas size', function() {
             engine.setCanvasSize(800, 600);
-            csize = engine.getCanvasSize();
+            var csize = engine.getCanvasSize();
             expect(csize[0]).toBe(800);
             expect(csize[1]).toBe(600);
         });

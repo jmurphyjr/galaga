@@ -1,12 +1,30 @@
 var app = app || {};
 
 
+gameState = StateMachine.create({
+    initial: 'menu',
+    events: [
+        { name: 'startup', from: 'none', to: 'menu' },
+        { name: 'play', from: 'menu', to: 'game' },
+        { name: 'game', from: 'game', to: 'menu' }
+    ],
+
+    callbacks: {
+        onmenu: function (event, from, to, msg) {
+            console.log('display startup screen');
+        },
+        ongame: function (event, from, to, msg) {
+            game.init(msg);
+        }
+    }
+});
+
 // var engine = app.Engine(this);
 // var em = new app.EnemyManager(500, 644);
 
 // engine.setSpriteImage('images/space.png');
 var game = null;
-var loadEntities = function() {
+var loadEntities = function () {
     // em.createEnemies();
     // player = new app.Player(new app.Point(250, 540), 'white');
     // player.init(document);
@@ -15,12 +33,14 @@ var loadEntities = function() {
     // engine.init();
     game = new app.Game();
     // game.setCanvasBackground('images/space.png');
-    game.init(this);
+    // game.init(this);
+    gameState.play(this);
 
 };
 
 Resources.load([
     'images/space.png',
+    'images/space-larger.png',
     'images/galaga-red-fighter.png',
     'images/galaga-white-fighter.png',
     'images/galaga-red-blue-pink-enemy.png',
@@ -34,31 +54,3 @@ Resources.load([
 Resources.onReady(loadEntities);
 // Resources.onReady(engine.init);
 
-var handleInput = function(key) {
-    switch (key) {
-        case 'space':
-            {
-                if (gameState == 'INTRO') {
-                    console.log('Draw the canvas');
-                    engine.initialize();
-                    gameState = 'PLAY';
-                } else if (gameState == 'PLAY') {
-                    // Fire the missiles.
-                    // console.log('fire');
-                }
-                // engine.main();
-                break;
-            }
-        case 'up':
-            {
-                console.log('Move up');
-                break;
-            }
-        case 'down':
-            {
-                console.log('Move down');
-                break;
-            }
-    }
-};
-gameState = 'PLAY';

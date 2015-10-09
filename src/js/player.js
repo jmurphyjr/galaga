@@ -27,8 +27,21 @@ var app = app || {};
      */
     var Player = function(startingPosition, type) {
         app.Entity.call(this, sprites[type], startingPosition, type);
+
+        /**
+         * @description controls the direction of movement for the player.
+         * @property
+         * @type {Number}
+         */
         this.direction = +1;
+
+        /**
+         * @description holds the missile objects associated with the Player.
+         * @property
+         * @type {Array}
+         */
         this.missiles = [];
+
         var key = this.keys = [];
         this.move = false;
         this.fireTimer = 0;
@@ -45,19 +58,31 @@ var app = app || {};
         // console.log(evt);
         this.keys[evt.keyCode] = false;
     };
+
+    /**
+     * @description Sets up event listeners for keyup and keydown actions.
+     * @param win
+     */
     Player.prototype.init = function(win) {
         win.addEventListener('keydown', this.keyDown.bind(this), false);
         win.addEventListener('keyup', this.keyUp.bind(this), false);
     };
+
+    /**
+     * @description The Player update method.
+     *
+     * @param {Number} dt
+     * @param {Number} lastTime
+     */
     Player.prototype.update = function(dt, lastTime) {
         if (this.missiles.length > 0) {
             for (var i = this.missiles.length - 1; i >= 0; i--) {
                 if (this.missiles[i].destroyed) {
                     this.missiles.splice(i, 1);
-                    console.log('missile deleted');
+                    // console.log('missile deleted');
                 } else if (this.missiles[i].currentPosition.y < 0) {
                     // Bullet has left the screen destroy it.
-                    console.log('should not see this with a hit');
+                    // console.log('should not see this with a hit');
                     this.missiles.splice(i, 1);
                 } else {
                     this.missiles[i].update(dt);
@@ -83,10 +108,10 @@ var app = app || {};
             return;
         }
         this.currentPosition.x = this.currentPosition.x + xmove;
-        if (this.currentPosition.x < 40) {
-            this.currentPosition.x = 40;
-        } else if (this.currentPosition.x > 420) {
-            this.currentPosition.x = 420;
+        if (this.currentPosition.x < 0) {
+            this.currentPosition.x = 0;
+        } else if ((this.currentPosition.x) > game.canvasSize.width - game.cellSize) {
+            this.currentPosition.x = game.canvasSize.width - game.cellSize - 2;
         }
         // this.y = 50;
         this.move = false;
@@ -100,5 +125,14 @@ var app = app || {};
             }
         }
     };
+
+    /**
+     * Reset the player to a known state. Typically this will be executed after all enemies
+     * have been destroyed.
+     */
+    Player.prototype.reset = function() {
+        this.missiles = [];
+    };
+
     app.Player = Player;
 })();

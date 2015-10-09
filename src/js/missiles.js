@@ -20,7 +20,7 @@ var app = app || {};
     function Missile(playerLocation) {
         app.Entity.call(this, sprites.missile, new app.Point(playerLocation.x + 15, playerLocation.y), 'missile');
         // this.startingPosition = new app.Point(playerLocation.x + 15, playerLocation.y);
-        console.log(this.startingPosition);
+        // console.log(this.startingPosition);
     }
 
     Missile.prototype = Object.create(app.Entity.prototype);

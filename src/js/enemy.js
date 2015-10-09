@@ -1,5 +1,5 @@
 var app = app || {};
-(function() {
+(function () {
     'use strict';
     // Define enemy sprites and their attributes
     var states = {
@@ -43,118 +43,120 @@ var app = app || {};
      * @param {string} type
      * @constructor
      */
-    var Enemy = function(startingPosition, type) {
-        
+    var Enemy = function (startingPosition, type) {
+
         this.sprites = {
-        green: {
-            image: 'images/galaga-green-enemy.png',
-            size: {
-                width: 160,
-                height: 145
-            },
-            scale: 0.23
-        },
-        blue: {
-            image: 'images/galaga-blue-enemy.png',
-            size: {
-                width: 160,
-                height: 145
-            },
-            scale: 0.23
-        },
-        redblue: {
-            image: 'images/galaga-red-blue-pink-enemy.png',
-            size: {
-                width: 160,
-                height: 145
-            },
-            scale: 0.23
-        },
-        blueyellow: {
-            image: 'images/galaga-blue-yellow-red-enemy.png',
-            size: {
-                width: 160,
-                height: 145
-            },
-            scale: 0.23
-        },
-        explosion: {
-            image: 'images/explosion-sprite.png',
-            size: {
-                width: 146,
-                height: 36
-            },
-            scale: 1,
-            // frames: {
-            //     0: {
-            //         width: 7,
-            //         height: 8,
-            //         x: 2,
-            //         y: 13
-            //     },
-            //     1: {
-            //         width: 12,
-            //         height: 13,
-            //         x: 25,
-            //         y: 11
-            //     },
-            //     2: {
-            //         width: 16,
-            //         height: 16,
-            //         x: 47,
-            //         y: 10
-            //     },
-            //     3: {
-            //         width: 25,
-            //         height: 25,
-            //         x: 74,
-            //         y: 5
-            //     }
-            // }
-            frames: {
-                0: {
-                    width: 48,
-                    height: 49,
-                    x: 167,
-                    y: 38
+            green: {
+                image: 'images/galaga-green-enemy.png',
+                size: {
+                    width: 160,
+                    height: 145
                 },
-                1: {
-                    width: 50,
-                    height: 48,
-                    x: 293,
-                    y: 42
+                scale: 0.25
+            },
+            blue: {
+                image: 'images/galaga-blue-enemy.png',
+                size: {
+                    width: 160,
+                    height: 145
                 },
-                2: {
-                    width: 58,
-                    height: 54,
-                    x: 416,
-                    y: 40
+                scale: 0.25
+            },
+            redblue: {
+                image: 'images/galaga-red-blue-pink-enemy.png',
+                size: {
+                    width: 160,
+                    height: 145
                 },
-                3: {
-                    width: 66,
-                    height: 61,
-                    x: 28,
-                    y: 166
+                scale: 0.25
+            },
+            blueyellow: {
+                image: 'images/galaga-blue-yellow-red-enemy.png',
+                size: {
+                    width: 160,
+                    height: 145
                 },
-                4: {
-                    width: 70,
-                    height: 66,
-                    x: 155,
-                    y: 165
+                scale: 0.25
+            },
+            explosion: {
+                image: 'images/explosion-sprite.png',
+                size: {
+                    width: 146,
+                    height: 36
                 },
-                5: {
-                    width: 66,
-                    height: 63,
-                    x: 284,
-                    y: 165
+                scale: 1,
+                frames: {
+                    0: {
+                        width: 48,
+                        height: 49,
+                        x: 167,
+                        y: 38
+                    },
+                    1: {
+                        width: 50,
+                        height: 48,
+                        x: 293,
+                        y: 42
+                    },
+                    2: {
+                        width: 58,
+                        height: 54,
+                        x: 416,
+                        y: 40
+                    },
+                    3: {
+                        width: 66,
+                        height: 61,
+                        x: 28,
+                        y: 166
+                    },
+                    4: {
+                        width: 70,
+                        height: 66,
+                        x: 155,
+                        y: 165
+                    },
+                    5: {
+                        width: 66,
+                        height: 63,
+                        x: 284,
+                        y: 165
+                    },
+                    6: {
+                        width: 67,
+                        height: 69,
+                        x: 412,
+                        y: 162
+                    },
+                    7: {
+                        width: 72,
+                        height: 73,
+                        x: 26,
+                        y: 289
+                    },
+                    8: {
+                        width: 77,
+                        height: 77,
+                        x: 151,
+                        y: 287
+                    },
+                    9: {
+                        width: 83,
+                        height: 80,
+                        x: 276,
+                        y: 287
+                    },
+                    10: {
+                        width: 80,
+                        height: 84,
+                        x: 406,
+                        y: 285
+                    }
                 }
             }
-        }
-    };
+        };
 
-        
-        
-        
+
         /**
          * Enemies have all attributes of an Entity, plus
          */
@@ -222,40 +224,43 @@ var app = app || {};
          * @type {Number}
          */
         this.column = null;
-        this.pulseBoundary = this.column * 2 || 0;
-
 
         this.explosionTimer = 0;
-        this.explosionDelay = 25;
-        
+        this.explosionDelay = 2;
+
         this.scoreValue = 200;
-        
+
+        this.pulseSide = null;
+        this.pulseBoundary = this.column * 2 || 0;
+        this.pulseDirection = null;
+        this.pulseStartPosition = null;
+        this.pulseStartFlag = false;
     };
     Enemy.prototype = Object.create(app.Entity.prototype);
     Enemy.prototype.constructor = Enemy;
 
-    Enemy.prototype.getPointValue = function() {
+    Enemy.prototype.getPointValue = function () {
         return this.scoreValue;
     };
-    
-    Enemy.prototype.reset = function() {
+
+    Enemy.prototype.reset = function () {
         this.deleteMe = false;
         this.destroyed = false;
         this.sprite = this.sprites[this.type];
         this.frameCounter = 0;
         this.state = 'SLIDE';
-        
+
     };
-    
-    Enemy.prototype.setRow = function(row) {
+
+    Enemy.prototype.setRow = function (row) {
         this.row = row;
     };
 
-    Enemy.prototype.setColumn = function(column) {
+    Enemy.prototype.setColumn = function (column) {
         this.column = column;
     };
 
-    Enemy.prototype.setState = function(state) {
+    Enemy.prototype.setState = function (state) {
         this.state = 'PULSE';
     };
 
@@ -265,7 +270,7 @@ var app = app || {};
      * @param {string} sprite
      * @throws {error} If sprite is not string
      */
-    Enemy.prototype.setSprite = function(sprite) {
+    Enemy.prototype.setSprite = function (sprite) {
         if (typeof sprite !== 'string') {
             throw new Error('sprite must be string type');
         }
@@ -284,15 +289,15 @@ var app = app || {};
      * @param {Number} colOffset
      * @param {Number} rowOffset description
      */
-    //    Enemy.prototype.update = function(dt, lastTime) {
-    Enemy.prototype.update = function(dt, lastTime, refPoint, xmove, ymove, colOffset, rowOffset) {
+    Enemy.prototype.update = function (dt, lastTime, refPoint, xmove, ymove) {
 
         if (this.destroyed) {
             this.sprite = this.sprites.explosion;
             if (this.frameCounter === null) {
                 this.frameCounter = 0;
                 this.explosionTimer = lastTime + this.explosionDelay;
-            } else {
+            }
+            else {
                 if (lastTime > this.explosionTimer) {
                     this.frameCounter++;
                     this.explosionTimer = lastTime + this.explosionDelay;
@@ -300,37 +305,47 @@ var app = app || {};
             }
 
             if (this.frameCounter >= (Object.keys(this.sprite.frames).length - 1)) {
-                console.log('Entity id: ' + this.__objId + '  frameCounter: ' + this.frameCounter);
+                // console.log('Entity id: ' + this.__objId + '  frameCounter: ' + this.frameCounter);
                 this.deleteMe = true;
             }
             // return;
-        } else {
+        }
+        else {
             // In the original game, the enemies would spread out
-            var xMove = refPoint.x + this.column * colOffset;
-            var yMove = refPoint.y + this.row * rowOffset;
             if (this.state === 'PULSE') {
+
                 if (this.type === 'green' || this.type === 'blue') {
-                    this._pulseEnemy(this);
-                    if (Math.abs(this.startingPosition.x - this.currentPosition.x) > 20) {
-                        this.direction *= -1;
+                    var colRatio = (this.column - game.enemyManager.brigadeStartColumn) / 5;
+                    if (colRatio <= 1) {
+                        this.pulseSide = 'left';
                     }
-                    xmove = dt * this.offset * this.speed * this.direction;
+                    else if (colRatio > 1) {
+                        this.pulseSide = 'right';
+                    }
+
+                    this._pulseEnemy(this);
+                    xmove = dt * this.column * this.direction;
                     this.lastPosition = this.currentPosition;
                     this.currentPosition.x += xmove;
                 }
-            } else if (this.state === 'SLIDE') {
+            }
+            else if (this.state === 'SLIDE') {
+                var xMove = refPoint.x + (this.column - game.enemyManager.brigadeStartColumn) * game.cellSize;
+                var yMove = refPoint.y + (this.row - game.enemyManager.brigadeStartRow) * game.cellSize;
                 this.currentPosition.x = xMove;
                 this.currentPosition.y = yMove;
-            } else if (this.state === 'ATTACK') {
+            }
+            else if (this.state === 'ATTACK') {
                 // attack causes the enemy to rise up, rotate either right or left depending
                 // column, and continue to attack.
                 if (this.attackStart) {
                     var points = calculateControlPoints('triangle', this.currentPosition);
                     this.attackStart = false;
-                    console.log(states.attack);
+                    // console.log(states.attack);
                     this.attackPoints.pushArrayMembers(calculateBezierCurvePoints(points[0], points[1], points[2], points[3]));
                     this.attackAngles.pushArrayMembers(calculateBezierCurveAngles(points[0], points[1], points[2], points[3]));
-                } else {
+                }
+                else {
                     if (this.attackPoints.length !== 0) {
                         if (lastTime > this.attackTimer) {
                             this.currentPosition.x = this.attackPoints[this.attackIndex].x;
@@ -346,7 +361,8 @@ var app = app || {};
                         }
                     }
                 }
-            } else if (this.state === 'CIRCLE') {
+            }
+            else if (this.state === 'CIRCLE') {
                 if (this.attackStart) {
                     this.attackStart = false;
                     var loop = calculateLoopPoints(this.currentPosition);
@@ -355,8 +371,8 @@ var app = app || {};
                     this.currentPosition.x = this.attackPoints[0].x;
                     this.currentPosition.y = this.attackPoints[0].y;
                     this.attackIndex++;
-                } else
-                if (this.attackPoints.length !== 0) {
+                }
+                else if (this.attackPoints.length !== 0) {
                     if (lastTime > this.attackTimer) {
                         this.currentPosition.x = this.attackPoints[this.attackIndex].x;
                         this.currentPosition.y = this.attackPoints[this.attackIndex].y;
@@ -373,97 +389,60 @@ var app = app || {};
             }
         }
     };
-    Enemy.prototype.render = function(ctx) {
+    Enemy.prototype.render = function (ctx) {
         // console.log(this.currentPosition);
         if (this.destroyed) {
             renderDestroyed(this, ctx);
-        } else if (this.state === 'ATTACK' && !this.attackStart) {
+        }
+        else if (this.state === 'ATTACK' && !this.attackStart) {
             ctx.translate(this.currentPosition.x, this.currentPosition.y);
             ctx.rotate(this.attackAngles[this.attackIndex]);
             ctx.drawImage(Resources.get(this.sprite.image), -((this.sprite.size.width * this.sprite.scale) / 2), -((this.sprite.size.height * this.sprite.scale) / 2), this.sprite.size.width * this.sprite.scale, this.sprite.size.height * this.sprite.scale);
             ctx.setTransform(1, 0, 0, 1, 0, 0);
-        } else if (this.state === 'CIRCLE' && !this.attackStart) {
+        }
+        else if (this.state === 'CIRCLE' && !this.attackStart) {
             ctx.translate(this.currentPosition.x, this.currentPosition.y);
             ctx.rotate(this.attackAngles[this.attackIndex]);
             ctx.drawImage(Resources.get(this.sprite.image), -((this.sprite.size.width * this.sprite.scale) / 2), -((this.sprite.size.height * this.sprite.scale) / 2), this.sprite.size.width * this.sprite.scale, this.sprite.size.height * this.sprite.scale);
             ctx.setTransform(1, 0, 0, 1, 0, 0);
-        } else {
+        }
+        else {
             app.Entity.prototype.render.call(this, ctx);
         }
     };
 
-    var renderDestroyed = function(enemy, ctx) {
+    var renderDestroyed = function (enemy, ctx) {
         var frmCnt = enemy.frameCounter;
         var sp = enemy.sprite;
         var spF = sp.frames;
         var cp = enemy.currentPosition;
-        console.log('Enemy: 323:  Entity id: ' + enemy.__objId + '  frameCounter: ' + enemy.frameCounter);
+        // console.log('Enemy: 323:  Entity id: ' + enemy.__objId + '  frameCounter: ' + enemy.frameCounter);
         ctx.drawImage(Resources.get(sp.image), spF[frmCnt].x, spF[frmCnt].y, spF[frmCnt].width, spF[frmCnt].height, cp.x, cp.y, spF[frmCnt].width, spF[frmCnt].height);
     };
 
-    Enemy.prototype._pulseEnemy = function(enemy) {
+    Enemy.prototype._pulseEnemy = function () {
         // console.log(enemy.type);
-        switch (enemy.column) {
-            case 1:
-                {
-                    enemy.speed = 1;
-                    enemy.offset = 10;
-                    break;
+        switch (this.pulseSide) {
+            case 'left':
+            {
+                if (this.pulseDirection === 'out') {
+                    this.direction = -1;
                 }
-            case 2:
-                {
-                    enemy.speed = 1;
-                    enemy.offset = 8;
-                    break;
+                else {
+                    this.direction = 1;
                 }
-            case 3:
-                {
-                    enemy.speed = 1;
-                    enemy.offset = 6;
-                    break;
+                break;
+            }
+            case 'right':
+            {
+                if (this.pulseDirection === 'out') {
+                    this.direction = 1;
                 }
-            case 4:
-                {
-                    enemy.speed = 1;
-                    enemy.offset = 4;
-                    break;
+                else {
+                    this.direction = -1;
                 }
-            case 5:
-                {
-                    enemy.speed = 1;
-                    enemy.offset = 2;
-                    break;
-                }
-            case 6:
-                {
-                    enemy.speed = 1;
-                    enemy.offset = 2;
-                    break;
-                }
-            case 7:
-                {
-                    enemy.speed = 1;
-                    enemy.offset = 4;
-                    break;
-                }
-            case 8:
-                {
-                    enemy.speed = 1;
-                    enemy.offset = 6;
-                    break;
-                }
-            case 9:
-                {
-                    enemy.speed = 1;
-                    enemy.offset = 8;
-                    break;
-                }
-            case 10:
-                {
-                    enemy.speed = 1;
-                    enemy.offset = 10;
-                    break;
-                }
+                break;
+            }
         }
     };
     app.Enemy = Enemy;

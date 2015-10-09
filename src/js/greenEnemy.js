@@ -24,7 +24,7 @@
 
 var app = app || {};
 
-(function() {
+(function () {
     'use strict';
 
     function GreenEnemy(startingPosition) {
@@ -36,7 +36,7 @@ var app = app || {};
          */
         this.setRow(1);
         this.scoreValue = 400;
-        
+
         /**
          * Green enemies must be hit twice to be destroyed. After first
          * hit, green enemies turn blue.
@@ -56,12 +56,12 @@ var app = app || {};
     //   this.currentPosition.x = 100;
     //   this.currentPosition.y = 400;
     // };
-    
-        /**
+
+    /**
      * Set destroy to true on entity.
      * @method
      */
-    GreenEnemy.prototype.setDestroy = function() {
+    GreenEnemy.prototype.setDestroy = function () {
         this.HealthCounter--;
         if (this.HealthCounter === 0) {
             this.destroyed = true;
@@ -70,8 +70,8 @@ var app = app || {};
             this.sprite = this.sprites.blue;
         }
     };
-    
-    GreenEnemy.prototype.getPointValue = function() {
+
+    GreenEnemy.prototype.getPointValue = function () {
         if (this.destroyed) {
             return this.scoreValue;
         }
@@ -79,8 +79,8 @@ var app = app || {};
             return 0;
         }
     };
-    
-    GreenEnemy.prototype.reset = function() {
+
+    GreenEnemy.prototype.reset = function () {
         this.destroyed = false;
         this.deleteMe = false;
         this.sprite = this.sprites[this.type];

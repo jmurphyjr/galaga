@@ -12,12 +12,13 @@ var app = app || {};
     var entities = [];
     var player = null;
     var highScore = 0;
-    console.trace();
+    if (typeof this === 'object') {
+        setCanvasSize(game.getCanvasSize());
+    }
     /**
      * Initializes the game canvas.
      */
     function init() {
-        setCanvasSize(500, 644);
         doc.getElementById('gameboard').appendChild(canvas);
         ctx.beginPath();
         ctx.rect(0, 0, canvas.width, canvas.height);
@@ -36,7 +37,7 @@ var app = app || {};
     /**
      * Add Entity to the entities array
      * @method
-     * @param {Entity}
+     * @param {Entity} entity
      *
      */
     function addEntity(entity) {
@@ -49,12 +50,11 @@ var app = app || {};
     }
     /**
      * Set the canvas size
-     * @param {integer} width
-     * @param {integer} height
+     * @param {Object} cSize
      */
-    function setCanvasSize(width, height) {
-        canvas.width = width;
-        canvas.height = height;
+    function setCanvasSize(cSize) {
+        canvas.width = cSize.width;
+        canvas.height = cSize.height;
     }
     /**
      * Set the background image file for the canvas
@@ -64,12 +64,13 @@ var app = app || {};
     function setSprite(imageSrc) {
         sprite = imageSrc;
     }
+
     /**
      * Gets the size of the canvas
      * @returns {Array} width, height
      */
     function getCanvasSize() {
-        return [canvas.width, canvas.height];
+        return { width: canvas.width, height: canvas.height };
     }
 
     function getDt() {
@@ -122,8 +123,8 @@ var app = app || {};
             // entity.update(dt, lastTime);
             // if (collisionDetection(entity)) {
             if (collisionDetection(entities[i])) {
-                console.log('Collission Detected');
-                console.log(entities[i]);
+                // console.log('Collission Detected');
+                // console.log(entities[i]);
                 // player.score++;
             }
             entities[i].update(dt, lastTime);
@@ -134,19 +135,62 @@ var app = app || {};
     function render(ctx) {
         ctx.font = '900 24px Arial';
         ctx.fillStyle = 'red';
-        ctx.drawImage(Resources.get('images/space.png'), 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(Resources.get('images/space-larger.png'), 0, 0);
+        // ctx.rect(0,0, canvas.width, canvas.height);
         ctx.fillText('1UP', 40, 25);
         ctx.fillText('HIGH SCORE', ((canvas.width / 2)), 25);
         ctx.fillStyle = 'white';
         ctx.textAlign = 'center';
-        ctx.fillText(player.score, 40, 50);
-        ctx.fillText(highScore, ((canvas.width / 2)), 50);
+        ctx.fillText(player.score.toString(), 40, 50);
+        ctx.fillText(highScore.toString(), ((canvas.width / 2)), 50);
         ctx.textAlign = 'center';
-        entities.forEach(function(entity) {
+        entities.forEach(function renderEachEntity(entity) {
             entity.render(ctx);
         });
         player.render(ctx);
+
+
+        drawBoard();
+
+
+
+
+
     }
+
+
+    //grid width and height
+    var bw = canvas.width;
+    var bh = canvas.height;
+//padding around grid
+    var p = 0;
+//size of canvas
+    var cw = bw + (p*2) + 1;
+    var ch = bh + (p*2) + 1;
+
+    // var canvas = $('<canvas/>').attr({width: cw, height: ch}).appendTo('body');
+
+    // var context = canvas.get(0).getContext("2d");
+
+    function drawBoard() {
+        for (var x = 0; x <= bw; x += 40) {
+            ctx.moveTo(0.5 + x + p, p);
+            ctx.lineTo(0.5 + x + p, bh + p);
+        }
+
+
+        for (var i = 0; i <= bh; i += 40) {
+            ctx.moveTo(p, 0.5 + i + p);
+            ctx.lineTo(bw + p, 0.5 + i + p);
+        }
+
+        ctx.strokeStyle = "blue";
+        ctx.stroke();
+    }
+
+
+
 
     function collisionDetection(e) {
         if (player.missiles.length > 0) {
@@ -154,7 +198,7 @@ var app = app || {};
                 for (var t = 0; t < e._enemies.length; t++) {
                     if (e._enemies[t].destroyed) {
                         // Can't be destroyed again, thus return false
-                        console.log('already destroyed');
+                        // console.log('already destroyed');
                     } else if (player.missiles[i].currentPosition.x < e._enemies[t].currentPosition.x + e._enemies[t].rect.width &&
                         player.missiles[i].currentPosition.x + player.missiles[i].rect.width > e._enemies[t].currentPosition.x &&
                         player.missiles[i].currentPosition.y < e._enemies[t].currentPosition.y + e._enemies[t].rect.height - 10 &&

@@ -2,17 +2,25 @@
  * Created by jack on 10/2/15.
  */
 var app = app || {};
-(function() {
+(function () {
     function EnemyManager(cWidth, cHeight) {
         // public properties
-        this.brigadeState = 'SLIDE';
+        this.brigadeState = 'PULSE';
         /**
-         * The maximum number of green enemies active in the game.
+         * The maximum number of green enemies active in the game. During fly-in there are 10 green enemies
+         * however only 4 of the green enemies are left in the brigade.
+         *
          * @property greenEnemies
          * @type Number
          * @default 10
          */
-        this.maxGreen = 4;
+        this.maxGreen = 10;
+
+        this.greenStartRow = 3;
+
+        this.greenStartCol = 7;
+
+        this.greenTotalRows = 1;
 
         /**
          * The maximum number of blue enemies active in the game.
@@ -20,7 +28,7 @@ var app = app || {};
          * @type {Number}
          * @default 20
          */
-        this.maxBlue = 16;
+        this.maxBlue = 20;
         /**
          * The maximum number of yellow enemies active in the game.
          * @property yellowEnemies
@@ -39,15 +47,28 @@ var app = app || {};
          * @default 1
          */
         this.defaultHealth = 1;
-        // private properties
+
+        this.brigadeXMin = 1000;
+
+        this.brigadeXMax = 0;
+
         this._brigadeMaxWidth = 385;
+
+        this.brigadeStartRow = 2;
+
+        this.brigadeStartColumn = 2;
+
+        this._brigadePulseStart = true;
+
+        this.brigadePulseDirection = 'out';
+
         /**
          * @description The starting point for the brigade
          * @property _brigadeStartingPoint
          * @type {Point}
          * @private
          */
-        this._brigadeStartingPoint = new app.Point(50, 70);
+        this._brigadeStartingPoint = new app.Point(this.brigadeStartColumn * game.cellSize, this.brigadeStartRow * game.cellSize);
         /**
          * @description The current point where the brigade is located
          * @property _brigadeCurrentPoint
@@ -94,74 +115,52 @@ var app = app || {};
          */
         this._enemies = [];
         this._destroyedEnemies = [];
-        /**
-         *
-         * @property _row
-         * @type {Number}
-         * @private
-         */
-        this._row = null;
-        this._canvasWidth = cWidth;
-        this._canvasHeight = cHeight;
+
+        this.csize = game.getCanvasSize();
     }
+
     /**
      * Instantiates the enemy entities.
      * @method createEnemies
      */
-    EnemyManager.prototype.createEnemies = function() {
+    EnemyManager.prototype.createEnemies = function () {
         var startingX = 0;
         var startingY = 0;
-        var type = '';
-        var nudge = 0;
-        var currentColumn = 0;
-        var currentRow = 1;
         var enemy;
-        type = 'green';
-        currentColumn = 4;
-        nudge = 0;
-        for (var t = 1; t <= 4; t++) {
+
+        for (var t = 6; t <= 9; t++) {
             // Green starts in column 4 and is only one row.
-            startingX = this._brigadeStartingPoint.x + currentColumn * this._columnOffset;
-            startingY = this._brigadeStartingPoint.y + currentRow * this._rowOffset + nudge;
+            startingX = t * game.cellSize;
+            startingY = this.greenStartRow * game.cellSize;
             enemy = new app.GreenEnemy(new app.Point(startingX, startingY));
-            enemy.setRow(1);
-            enemy.setColumn(currentColumn);
+            enemy.setRow(3);
+            enemy.setColumn(t);
             this._enemies.push(enemy);
-            currentRow++;
-            currentColumn++;
         }
-        type = 'redblue';
-        currentRow = 2;
-        nudge = this._greenRowNudge;
-        for (var i = 1; i <= 2; i++) {
+
+        for (var row = 4; row <= 5; row++) {
             // Red Blue starts in column 2 and are located in rows 2 and 3.
-            currentColumn = 2;
-            for (var j = 0; j < 8; j++) {
-                startingX = this._brigadeStartingPoint.x + currentColumn * this._columnOffset;
-                startingY = this._brigadeStartingPoint.y + currentRow * this._rowOffset + nudge;
-                enemy = new app.Enemy(new app.Point(startingX, startingY), type);
-                enemy.setRow(currentRow);
-                enemy.setColumn(currentColumn);
+            for (var j = 4; j <= 11; j++) {
+                startingX = j * game.cellSize;
+                startingY = row * game.cellSize;
+                enemy = new app.Enemy(new app.Point(startingX, startingY), 'redblue');
+                enemy.setRow(row);
+                enemy.setColumn(j);
                 this._enemies.push(enemy);
-                currentColumn++;
             }
-            currentRow++;
         }
-        type = 'blueyellow';
-        currentRow = 4;
-        for (var k = 1; k <= 2; k++) {
+
+        for (var k = 6; k <= 7; k++) {
             // Blue Yellow starts in column 1 and are located in rows 4 and 5.
-            currentColumn = 1;
-            for (var n = 0; n < 10; n++) {
-                startingX = this._brigadeStartingPoint.x + currentColumn * this._columnOffset;
-                startingY = this._brigadeStartingPoint.y + currentRow * this._rowOffset + nudge;
-                enemy = new app.Enemy(new app.Point(startingX, startingY), type);
-                enemy.setRow(currentRow);
-                enemy.setColumn(currentColumn);
+
+            for (var n = 2; n <= 13; n++) {
+                startingX = n * game.cellSize;
+                startingY = k * game.cellSize;
+                enemy = new app.Enemy(new app.Point(startingX, startingY), 'blueyellow');
+                enemy.setRow(k);
+                enemy.setColumn(n);
                 this._enemies.push(enemy);
-                currentColumn++;
             }
-            currentRow++;
         }
     };
 
@@ -172,7 +171,7 @@ var app = app || {};
      * @param  {Enemy|GreenEnemy}  value An instance of either Enemy or GreenEnemy
      * @return {Boolean}       The value of the destroyed attribute.
      */
-    EnemyManager.prototype.isDestroyed = function(value) {
+    EnemyManager.prototype.isDestroyed = function (value) {
         return value.destroyed;
     };
 
@@ -183,7 +182,7 @@ var app = app || {};
      * @param  {Enemy|GreenEnemy}  value An instance of either Enemy or GreenEnemy
      * @return {Boolean}       [description]
      */
-    EnemyManager.prototype.isAlive = function(value) {
+    EnemyManager.prototype.isAlive = function (value) {
         return !value.destroyed;
     };
 
@@ -197,79 +196,103 @@ var app = app || {};
      * @param dt
      * @param lastTime
      */
-    EnemyManager.prototype.update = function(dt, lastTime) {
+    EnemyManager.prototype.update = function (dt, lastTime) {
         var xmove = 0;
         var ymove = 0;
 
         for (var i = this._enemies.length - 1; i >= 0; i--) {
-                if (this._enemies[i].deleteMe) {
-                    var removedItem = null;
-                    this._enemies[i].reset();
-                    removedItem = this._enemies.splice(i, 1)
-                    this._destroyedEnemies.push(removedItem[0]);
-                }
+            if (this._enemies[i].deleteMe) {
+                var removedItem = null;
+                this._enemies[i].reset();
+                removedItem = this._enemies.splice(i, 1);
+                this._destroyedEnemies.push(removedItem[0]);
+            }
         }
 
+        // Reset the enemies array if it is empty
+        // TODO: Need to create a reset function to advance to next stage.
         if (this._enemies.length === 0) {
-            // this.createEnemies();
             this._enemies = this._destroyedEnemies;
             this._destroyedEnemies = [];
             this._brigadeCurrentPoint = this._brigadeStartingPoint.clone();
             this._brigadeSlideDirection = +1;
-        };
+            game._player.reset();
+        }
+
+        // Get the dead and alive enemies to reduce the loop iterations going
+        // forward.
         var dead = this._enemies.filter(this.isDestroyed);
         var alive = this._enemies.filter(this.isAlive);
 
         if (dead.length > 0) {
-            dead.forEach(function(entity) {
+            dead.forEach(function (entity) {
                 entity.setSprite('explosion');
-                console.log('Frame Counter: ' + entity.frameCounter);
+                // console.log('Frame Counter: ' + entity.frameCounter);
                 entity.update(dt, lastTime);
-                console.log('Entity id: ' + entity.__objId + '  frameCounter: ' + entity.frameCounter);
+                // console.log('Entity id: ' + entity.__objId + '  frameCounter: ' + entity.frameCounter);
             });
         }
 
+        this.setBrigadeWidth();
+
+        // console.log('Brigade Min X: ' + this.brigadeXMin + '  Brigade Max X: ' + this.brigadeXMax);
+        game._root.document.getElementById('scoreboard').innerHTML = 'Brg Min X: ' + this.brigadeXMin.toFixed(2) + ' Brg Max X: ' + this.brigadeXMax.toFixed(2);
+
         if (this.brigadeState === 'SLIDE') {
-            if (this._brigadeSlideDirection === 1 && (this._brigadeCurrentPoint.x - this._brigadeStartingPoint.x) > 40) {
+            if (this._brigadeSlideDirection === 1 && (this.brigadeXMax) > this.csize.width) {
                 this._brigadeSlideDirection = -1;
-            } else if (this._brigadeSlideDirection === -1 && (this._brigadeStartingPoint.x - this._brigadeCurrentPoint.x) > 40) {
+            }
+            else if (this._brigadeSlideDirection === -1 && (this.brigadeXMin < 0)) {
                 this._brigadeSlideDirection = +1;
             }
             xmove = dt * 10 * this._brigadeSlideDirection;
             var bCurrent = this._brigadeCurrentPoint;
-            var bColOff = this._columnOffset;
-            var bRowOff = this._rowOffset;
-            // this._enemies.forEach(function(entity) {
-            //     entity.update(dt, lastTime, bCurrent, xmove, ymove, bColOff, bRowOff);
-            // });
-            alive.forEach(function(entity) {
-                entity.update(dt, lastTime, bCurrent, xmove, ymove, bColOff, bRowOff);
+
+            alive.forEach(function emUpdateEnemies(entity) {
+                entity.update(dt, lastTime, bCurrent, xmove, ymove);
             });
             this._brigadeCurrentPoint.x += xmove;
-        } else if (this.brigadeState === 'PULSE') {
+        }
+        else if (this.brigadeState === 'PULSE') {
             // Enemies will move out from the center of the screen, they will begin
             // to return when
-            if (this._brigadePulseStart === true) {
-                this._brigadePulseStartPoint = this._brigadeCurrentPoint.clone();
-                this._brigadePulseCurrentPoint = this._brigadePulseStartPoint.clone();
-                this._brigadePulseStart = false;
-                this._enemies.forEach(function(entity) {
-                    entity.setState('PULSE');
-                });
-            }
+
+            this._enemies.forEach(function setEnemyPulseDirection(entity) {
+                entity.state = 'PULSE';
+                entity.pulseDirection = 'out';
+                entity.update(dt, lastTime);
+            });
+
+//            if (this.brigadePulseDirection === 'out') {
+
+
+
         }
     };
 
-    EnemyManager.prototype.render = function(ctx) {
-        this._enemies.forEach(function(entity) {
+    EnemyManager.prototype.render = function (ctx) {
+        this._enemies.forEach(function (entity) {
             entity.render(ctx);
         });
     };
 
-    EnemyManager.prototype.setCanvasSize = function(width, height) {
-        this._canvasWidth = width;
-        this._canvasHeight = height;
-        console.log(self._canvasWidth + ', ' + self._canvasHeight);
+    EnemyManager.prototype.setBrigadeWidth = function() {
+        var cEnemy = null;
+        var xMin = 1000;
+        var xMax = 0;
+
+        for (var e = 0; e < this._enemies.length; e++) {
+            cEnemy = this._enemies[e].currentPosition.x;
+            if (cEnemy < xMin) {
+                this.brigadeXMin = cEnemy;
+                xMin = cEnemy;
+            }
+
+            if (cEnemy > xMax) {
+                this.brigadeXMax = (cEnemy + game.cellSize);
+                xMax = cEnemy;
+            }
+        }
     };
 
     app.EnemyManager = EnemyManager;
