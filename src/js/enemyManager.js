@@ -60,7 +60,11 @@ var app = app || {};
 
         this._brigadePulseStart = true;
 
-        this.brigadePulseDirection = 'out';
+        this.brigadePulseTimer = 0;
+
+        this.brigadePulseDelay = 2000;
+
+        this.brigadePulseDirection = 'in';
 
         /**
          * @description The starting point for the brigade
@@ -117,6 +121,9 @@ var app = app || {};
         this._destroyedEnemies = [];
 
         this.csize = game.getCanvasSize();
+
+        this.xMove = 0;
+        this.yMove = 0;
     }
 
     /**
@@ -162,6 +169,16 @@ var app = app || {};
                 this._enemies.push(enemy);
             }
         }
+        var ul = game._root.document.createElement('ul');
+        ul.setAttribute('id', 'list');
+        this._enemies.forEach(function addTestData(e) {
+            var li = game._root.document.createElement('li');
+            li.setAttribute('id', e.__objId);
+            li.appendChild(game._root.document.createTextNode('x: ' + e.currentPosition.x.toFixed(1) + ' y: ' + e.currentPosition.y.toFixed(1)));
+            ul.appendChild(li);
+
+        });
+        game._root.document.getElementById('enemyInfo').appendChild(ul);
     };
 
     /**
@@ -197,8 +214,8 @@ var app = app || {};
      * @param lastTime
      */
     EnemyManager.prototype.update = function (dt, lastTime) {
-        var xmove = 0;
-        var ymove = 0;
+        var xmove;
+        var ymove;
 
         for (var i = this._enemies.length - 1; i >= 0; i--) {
             if (this._enemies[i].deleteMe) {
@@ -235,8 +252,8 @@ var app = app || {};
 
         this.setBrigadeWidth();
 
-        // console.log('Brigade Min X: ' + this.brigadeXMin + '  Brigade Max X: ' + this.brigadeXMax);
-        game._root.document.getElementById('scoreboard').innerHTML = 'Brg Min X: ' + this.brigadeXMin.toFixed(2) + ' Brg Max X: ' + this.brigadeXMax.toFixed(2);
+        // TODO: Line below is for debugging purposes only.
+        //game._root.document.getElementById('brigadeInfo').innerHTML = 'Brg Min X: ' + this.brigadeXMin.toFixed(2) + ' Brg Max X: ' + this.brigadeXMax.toFixed(2);
 
         if (this.brigadeState === 'SLIDE') {
             if (this._brigadeSlideDirection === 1 && (this.brigadeXMax) > this.csize.width) {
@@ -249,6 +266,7 @@ var app = app || {};
             var bCurrent = this._brigadeCurrentPoint;
 
             alive.forEach(function emUpdateEnemies(entity) {
+                entity.state= 'SLIDE';
                 entity.update(dt, lastTime, bCurrent, xmove, ymove);
             });
             this._brigadeCurrentPoint.x += xmove;
@@ -256,22 +274,29 @@ var app = app || {};
         else if (this.brigadeState === 'PULSE') {
             // Enemies will move out from the center of the screen, they will begin
             // to return when
+            if (lastTime > this.brigadePulseTimer) {
+
+                if (this.brigadePulseDirection === 'in') {
+                    this.brigadePulseDirection = 'out';
+                }
+                else {
+                    this.brigadePulseDirection = 'in';
+                }
+                this.brigadePulseTimer = lastTime + this.brigadePulseDelay;
+            }
 
             this._enemies.forEach(function setEnemyPulseDirection(entity) {
                 entity.state = 'PULSE';
-                entity.pulseDirection = 'out';
+                entity.pulseDirection = this.brigadePulseDirection;
                 entity.update(dt, lastTime);
+                // game._root.document.getElementById(entity.__objId).innerHTML = 'Column: ' + entity.column + ' x: ' + entity.currentPosition.x.toFixed(1) + ' y: ' + entity.currentPosition.y.toFixed(1);;
+
             });
-
-//            if (this.brigadePulseDirection === 'out') {
-
-
-
         }
     };
 
     EnemyManager.prototype.render = function (ctx) {
-        this._enemies.forEach(function (entity) {
+        this._enemies.forEach(function renderEachEntity(entity) {
             entity.render(ctx);
         });
     };

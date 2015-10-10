@@ -31,8 +31,9 @@ var app = app || {};
         /**
          * Set listeners specific to the game
          */
-        win.addEventListener('focus', unPause.bind(this), false);
-        win.addEventListener('blur', pause.bind(this), false);
+        // TODO: Temporarily disable focus/blur event listeners
+        // win.addEventListener('focus', unPause.bind(this), false);
+        // win.addEventListener('blur', pause.bind(this), false);
     }
     /**
      * Add Entity to the entities array
@@ -150,8 +151,9 @@ var app = app || {};
         });
         player.render(ctx);
 
-
-        drawBoard();
+        // TODO: The function below should only be used for debugging entity location on the screen
+        // TODO: to use otherwise, will cause "jank" on the screen.
+        // drawBoard();
 
 
 

@@ -185,6 +185,9 @@ var app = app || {};
          * @default +1 (Positive X (right) or Positive Y (down)
          */
         this.direction = +1;
+
+        this.vertDirection = +1;
+
         /**
          * @property attackStart
          * @type {boolean}
@@ -249,6 +252,7 @@ var app = app || {};
         this.sprite = this.sprites[this.type];
         this.frameCounter = 0;
         this.state = 'SLIDE';
+        this.currentPosition = this.startingPosition;
 
     };
 
@@ -314,20 +318,28 @@ var app = app || {};
             // In the original game, the enemies would spread out
             if (this.state === 'PULSE') {
 
-                if (this.type === 'green' || this.type === 'blue') {
-                    var colRatio = (this.column - game.enemyManager.brigadeStartColumn) / 5;
-                    if (colRatio <= 1) {
-                        this.pulseSide = 'left';
-                    }
-                    else if (colRatio > 1) {
-                        this.pulseSide = 'right';
-                    }
-
-                    this._pulseEnemy(this);
-                    xmove = dt * this.column * this.direction;
-                    this.lastPosition = this.currentPosition;
-                    this.currentPosition.x += xmove;
+                var colRatio = (this.column - game.enemyManager.brigadeStartColumn) / 5;
+                if (colRatio <= 1) {
+                    this.pulseSide = 'left';
                 }
+                else if (colRatio > 1) {
+                    this.pulseSide = 'right';
+                }
+                this._pulseEnemy(this);
+
+                var xMove = dt * 2 * Math.abs((7.5 - this.column)) * this.direction;
+
+                this.lastPosition = this.currentPosition;
+                this.currentPosition.x += xMove;
+
+                if (this.type === 'green' || this.type === 'blue') {
+                    // This guys do not move in the vertical.
+                }
+                else {
+                    var yMove = dt * 2 * Math.abs(game.enemyManager.brigadeStartRow - this.row + 1) * this.vertDirection;
+                    this.currentPosition.y += yMove;
+                }
+
             }
             else if (this.state === 'SLIDE') {
                 var xMove = refPoint.x + (this.column - game.enemyManager.brigadeStartColumn) * game.cellSize;
@@ -425,7 +437,7 @@ var app = app || {};
         switch (this.pulseSide) {
             case 'left':
             {
-                if (this.pulseDirection === 'out') {
+                if (game.enemyManager.brigadePulseDirection === 'out') {
                     this.direction = -1;
                 }
                 else {
@@ -435,7 +447,7 @@ var app = app || {};
             }
             case 'right':
             {
-                if (this.pulseDirection === 'out') {
+                if (game.enemyManager.brigadePulseDirection === 'out') {
                     this.direction = 1;
                 }
                 else {
@@ -443,6 +455,12 @@ var app = app || {};
                 }
                 break;
             }
+        }
+        if (game.enemyManager.brigadePulseDirection === 'out') {
+            this.vertDirection = +1;
+        }
+        else {
+            this.vertDirection = -1;
         }
     };
     app.Enemy = Enemy;

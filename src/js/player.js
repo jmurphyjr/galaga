@@ -66,6 +66,7 @@ var app = app || {};
     Player.prototype.init = function(win) {
         win.addEventListener('keydown', this.keyDown.bind(this), false);
         win.addEventListener('keyup', this.keyUp.bind(this), false);
+
     };
 
     /**
