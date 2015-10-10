@@ -24,17 +24,17 @@ describe('App Enemy', function() {
     it('should be able to set the sprite attribute to a string', function() {
         var spriteImage = 'images/galaga-green-enemy.png';
 
-        enemy.setSpriteImage(spriteImage);
+        enemy.setSprite('green');
 
-        expect(enemy.setSpriteImage).toBeDefined();
-        expect(enemy.sprite).toBe('images/galaga-green-enemy.png');
+        expect(enemy.setSprite).toBeDefined();
+        expect(enemy.sprite.image).toBe('images/galaga-green-enemy.png');
     });
 
     it('should throw error if parameter is not string', function() {
         var spriteImage = 5;
 
         expect( function() {
-            enemy.setSpriteImage(spriteImage);
-        }).toThrow(new Error('spriteFileName must be string type'));
+            enemy.setSprite(1);
+        }).toThrow(new Error('sprite must be string type'));
     })
 });
