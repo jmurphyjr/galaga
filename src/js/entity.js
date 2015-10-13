@@ -3,6 +3,20 @@
  */
 var app = app || {};
 (function() {
+
+    var __nextObjId = 1;
+
+    function objectId(obj) {
+        if (obj === null) {
+            return null;
+        }
+        if (obj.__objId === null) {
+            obj.__objId = __nextObjId++;
+        }
+        return obj.__objId;
+
+    }
+
     /**
      * An Entity represents any object that can exist on the canvas.
      *
@@ -13,6 +27,21 @@ var app = app || {};
      * @class
      */
     var Entity = function(sprite, startingPosition, type) {
+        /**
+         * @description Uniquely identify every entity on the game board.
+         * @property __objId
+         * @type {Number}
+         */
+        this.__objId = null;
+        this.__objId = objectId(this);
+
+        // Grab a local copy of app.Game or create a new instance
+        this._game = game instanceof app.Game ? game : new app.Game();
+
+        // Grab a local copy of app.EnemyManager or create a new instance.
+        this._em = this._game.enemyManager instanceof app.EnemyManager ? game.enemyManager : new app.EnemyManager();
+
+
         /**
          *
          * @type {Object|string}
@@ -73,7 +102,7 @@ var app = app || {};
      * @param {Number} inRow
      */
     Entity.prototype.setRow = function(inRow) {
-        if (inRow.toString() === '' || (isNaN(inRow)) || (inRow < 1) || (inRow > 5)) {
+        if (inRow.toString() === '' || (isNaN(inRow))) {
             throw 'inRow value is not a valid: ' + inRow.toString();
         } else {
             this.row = Number(inRow);
@@ -85,7 +114,7 @@ var app = app || {};
      * @param {Number} col
      */
     Entity.prototype.setColumn = function(col) {
-        if (col.toString() === '' || (isNaN(col)) || (col < 1) || (col > 10)) {
+        if (col.toString() === '' || (isNaN(col))) {
             throw 'col value is not a valid: ' + col.toString();
         } else {
             this.column = Number(col);

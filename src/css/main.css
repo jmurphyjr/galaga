@@ -1,6 +1,13 @@
+body {
+    background-color: grey;
+    width: 100%;
+}
 #scoreboard {
     float: left;
 }
 #gameboard {
     float: left;
+}
+canvas {
+    width: 100%;
 }

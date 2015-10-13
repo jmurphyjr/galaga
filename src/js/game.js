@@ -123,7 +123,8 @@ var app = app || {};
 
         this.addPlayer();
         this.enemyManager = new app.EnemyManager();
-        this.enemyManager.createEnemies();
+        // this.enemyManager.createEnemies();
+        this.enemyManager.start();
 
         this._engine.addEntity(this.enemyManager);
 

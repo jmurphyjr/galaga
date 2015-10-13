@@ -68,6 +68,7 @@ var app = app || {};
         }
         else {
             this.sprite = this.sprites.blue;
+            this.current = this.previousstate;
         }
     };
 
@@ -87,6 +88,19 @@ var app = app || {};
         this.HealthCounter = 2;
         this.frameCounter = 0;
         this.state = 'SLIDE';
+    };
+    /**
+     * The 'destroy' state will cause the enemy to 'explode'.
+     *
+     * This state can be entered from: [ENTER, BRIGADE, ATTACK, FLY]
+     *
+     * @param event
+     * @param from
+     * @param to
+     */
+    GreenEnemy.prototype.onkilled = function(event, from, to) {
+        this.setDestroy();
+
     };
 
 

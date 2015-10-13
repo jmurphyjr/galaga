@@ -5,7 +5,10 @@ var app = app || {};
 (function () {
     function EnemyManager(cWidth, cHeight) {
         // public properties
-        this.brigadeState = 'PULSE';
+        // Valid brigadeState = 'SLIDE', 'PULSE', 'BEGIN'
+        this.brigadeState = 'OFF';
+
+        this._game = game instanceof app.Game ? game : new app.Game();
         /**
          * The maximum number of green enemies active in the game. During fly-in there are 10 green enemies
          * however only 4 of the green enemies are left in the brigade.
@@ -14,13 +17,13 @@ var app = app || {};
          * @type Number
          * @default 10
          */
-        this.maxGreen = 10;
+        // this.maxGreen = 10;
 
         this.greenStartRow = 3;
 
-        this.greenStartCol = 7;
+        // this.greenStartCol = 7;
 
-        this.greenTotalRows = 1;
+        // this.greenTotalRows = 1;
 
         /**
          * The maximum number of blue enemies active in the game.
@@ -28,14 +31,14 @@ var app = app || {};
          * @type {Number}
          * @default 20
          */
-        this.maxBlue = 20;
+        // this.maxBlue = 20;
         /**
          * The maximum number of yellow enemies active in the game.
          * @property yellowEnemies
          * @type Number
          * @default 20
          */
-        this.maxYellow = 20;
+        // this.maxYellow = 20;
         /**
          * The number of times an enemy needs to be hit in order to be destroyed.
          *   - greenEnemies require 2 hits to be destroyed
@@ -46,19 +49,19 @@ var app = app || {};
          * @type {number}
          * @default 1
          */
-        this.defaultHealth = 1;
+        // this.defaultHealth = 1;
 
-        this.brigadeXMin = 1000;
+        // this.brigadeXMin = 1000;
 
-        this.brigadeXMax = 0;
+        // this.brigadeXMax = 0;
 
-        this._brigadeMaxWidth = 385;
+        // this._brigadeMaxWidth = 385;
 
         this.brigadeStartRow = 2;
 
         this.brigadeStartColumn = 2;
 
-        this._brigadePulseStart = true;
+        // this._brigadePulseStart = true;
 
         this.brigadePulseTimer = 0;
 
@@ -72,14 +75,14 @@ var app = app || {};
          * @type {Point}
          * @private
          */
-        this._brigadeStartingPoint = new app.Point(this.brigadeStartColumn * game.cellSize, this.brigadeStartRow * game.cellSize);
+        this.brigadeStartingPoint = new app.Point(this.brigadeStartColumn * this._game.cellSize, this.brigadeStartRow * this._game.cellSize);
         /**
          * @description The current point where the brigade is located
-         * @property _brigadeCurrentPoint
+         * @property brigadeCurrentPoint
          * @type {Point}
          * @private
          */
-        this._brigadeCurrentPoint = this._brigadeStartingPoint.clone();
+        this.brigadeCurrentPoint = this.brigadeStartingPoint.clone();
         /**
          * @description For the brigade slide, the direction of the slide.
          * @property _brigadeSlideDirection
@@ -120,10 +123,27 @@ var app = app || {};
         this._enemies = [];
         this._destroyedEnemies = [];
 
-        this.csize = game.getCanvasSize();
+        this.csize = this._game.getCanvasSize();
 
         this.xMove = 0;
         this.yMove = 0;
+
+        // The following variables will be used for bringing the enemies onto the screen.
+        this.group = [];
+        this.group[1] = [];
+        this.group[2] = [];
+        this.group[3] = [];
+        this.group[4] = [];
+        this.group[5] = [];
+        this.group[6] = [];
+        this.groupCounter = 1;
+        this.groupElementCounter = 0;
+        this.groupLength = 0;
+        this.groupLaunchTimer = 0;
+        this.groupLaunchDelay = 200;
+
+        this.groupEnemyTimer = 0;
+        this.groupEnemyDelay = 200;
     }
 
     /**
@@ -134,17 +154,27 @@ var app = app || {};
         var startingX = 0;
         var startingY = 0;
         var enemy;
+        var g1Location = 0;
+        var g2Location = 0;
+        var g3Location = 0;
+        var g4Location = 0;
+        var g5Location = 0;
+        var g6Location = 0;
 
         for (var t = 6; t <= 9; t++) {
-            // Green starts in column 4 and is only one row.
+            // Green starts in column 6 and is only one row.
             startingX = t * game.cellSize;
             startingY = this.greenStartRow * game.cellSize;
             enemy = new app.GreenEnemy(new app.Point(startingX, startingY));
             enemy.setRow(3);
             enemy.setColumn(t);
+            // All GreenEnemies are in Group 2, they need to be added to the array in all even locations.
+            this.group[3][g3Location] = enemy;
             this._enemies.push(enemy);
+            g3Location += 2;
         }
 
+        g3Location = 1;  // For red enemies in group 2 they go in the odd slots.
         for (var row = 4; row <= 5; row++) {
             // Red Blue starts in column 2 and are located in rows 2 and 3.
             for (var j = 4; j <= 11; j++) {
@@ -153,6 +183,18 @@ var app = app || {};
                 enemy = new app.Enemy(new app.Point(startingX, startingY), 'redblue');
                 enemy.setRow(row);
                 enemy.setColumn(j);
+                if (j === 6 || j === 9) {
+                    this.group[3][g3Location] = enemy;
+                    g3Location += 2;
+                }
+                else if (j === 7 || j === 8) {
+                    this.group[1][g1Location] = enemy;
+                    g1Location += 1;
+                }
+                else if (j === 4 || j === 5 || j === 10 || j === 11) {
+                    this.group[4][g4Location] = enemy;
+                    g4Location += 1;
+                }
                 this._enemies.push(enemy);
             }
         }
@@ -166,6 +208,18 @@ var app = app || {};
                 enemy = new app.Enemy(new app.Point(startingX, startingY), 'blueyellow');
                 enemy.setRow(k);
                 enemy.setColumn(n);
+                if (n === 7 || n === 8) {
+                    this.group[2][g2Location] = enemy;
+                    g2Location += 1;
+                }
+                else if (n === 5 || n === 6 || n === 9 || n === 10) {
+                    this.group[5][g5Location] = enemy;
+                    g5Location += 1;
+                }
+                else if (n === 3 || n === 4 || n == 11 || n === 12) {
+                    this.group[6][g6Location] = enemy;
+                    g6Location += 1;
+                }
                 this._enemies.push(enemy);
             }
         }
@@ -178,7 +232,7 @@ var app = app || {};
             ul.appendChild(li);
 
         });
-        game._root.document.getElementById('enemyInfo').appendChild(ul);
+        // game._root.document.getElementById('enemyInfo').appendChild(ul);
     };
 
     /**
@@ -214,48 +268,41 @@ var app = app || {};
      * @param lastTime
      */
     EnemyManager.prototype.update = function (dt, lastTime) {
-        var xmove;
-        var ymove;
 
-        for (var i = this._enemies.length - 1; i >= 0; i--) {
-            if (this._enemies[i].deleteMe) {
-                var removedItem = null;
-                this._enemies[i].reset();
-                removedItem = this._enemies.splice(i, 1);
-                this._destroyedEnemies.push(removedItem[0]);
+        if (this.current === 'begin') {
+            // Launch enemies not onscreen already.
+            // console.log('I will begin launching the enemies onto the screen');
+
+            // Expect groupCounter === 1 and groupElementCounter === 0;
+            // if lastTime is greater than launchTimer
+            //      execute start on enemy in groupCounter
+            // else
+            //      do nothing this iteration
+            if (lastTime > this.groupLaunchTimer) {
+                if (this.groupElementCounter === this.groupLength) {
+
+                    this.groupCounter += 1;
+                    this.groupElementCounter = 0;
+                    if (this.groupCounter === 7) {
+                        this.march();
+                        return;
+                    }
+                    this.groupLength = this.group[this.groupCounter].length;
+                }
+                this.group[this.groupCounter][this.groupElementCounter].start();
+                this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
+                this.groupElementCounter++;
             }
-        }
 
-        // Reset the enemies array if it is empty
-        // TODO: Need to create a reset function to advance to next stage.
-        if (this._enemies.length === 0) {
-            this._enemies = this._destroyedEnemies;
-            this._destroyedEnemies = [];
-            this._brigadeCurrentPoint = this._brigadeStartingPoint.clone();
-            this._brigadeSlideDirection = +1;
-            game._player.reset();
-        }
-
-        // Get the dead and alive enemies to reduce the loop iterations going
-        // forward.
-        var dead = this._enemies.filter(this.isDestroyed);
-        var alive = this._enemies.filter(this.isAlive);
-
-        if (dead.length > 0) {
-            dead.forEach(function (entity) {
-                entity.setSprite('explosion');
-                // console.log('Frame Counter: ' + entity.frameCounter);
+            this._enemies.forEach(function updateEnemyBegin(entity) {
                 entity.update(dt, lastTime);
-                // console.log('Entity id: ' + entity.__objId + '  frameCounter: ' + entity.frameCounter);
+                // game._root.document.getElementById(entity.__objId).innerHTML = 'Column: ' + entity.column + ' x: ' + entity.currentPosition.x.toFixed(1) + ' y: ' + entity.currentPosition.y.toFixed(1);;
+
             });
         }
+        else if (this.current === 'slide') {
+            this.setBrigadeWidth();
 
-        this.setBrigadeWidth();
-
-        // TODO: Line below is for debugging purposes only.
-        //game._root.document.getElementById('brigadeInfo').innerHTML = 'Brg Min X: ' + this.brigadeXMin.toFixed(2) + ' Brg Max X: ' + this.brigadeXMax.toFixed(2);
-
-        if (this.brigadeState === 'SLIDE') {
             if (this._brigadeSlideDirection === 1 && (this.brigadeXMax) > this.csize.width) {
                 this._brigadeSlideDirection = -1;
             }
@@ -263,36 +310,97 @@ var app = app || {};
                 this._brigadeSlideDirection = +1;
             }
             xmove = dt * 10 * this._brigadeSlideDirection;
-            var bCurrent = this._brigadeCurrentPoint;
+            var bCurrent = this.brigadeCurrentPoint;
 
-            alive.forEach(function emUpdateEnemies(entity) {
-                entity.state= 'SLIDE';
-                entity.update(dt, lastTime, bCurrent, xmove, ymove);
+            this._enemies.forEach(function emUpdateEnemies(entity) {
+                entity.state = 'SLIDE';
+                entity.update(dt, lastTime, bCurrent);
             });
-            this._brigadeCurrentPoint.x += xmove;
+            this.brigadeCurrentPoint.x += xmove;
         }
-        else if (this.brigadeState === 'PULSE') {
-            // Enemies will move out from the center of the screen, they will begin
-            // to return when
-            if (lastTime > this.brigadePulseTimer) {
-
-                if (this.brigadePulseDirection === 'in') {
-                    this.brigadePulseDirection = 'out';
-                }
-                else {
-                    this.brigadePulseDirection = 'in';
-                }
-                this.brigadePulseTimer = lastTime + this.brigadePulseDelay;
-            }
-
-            this._enemies.forEach(function setEnemyPulseDirection(entity) {
-                entity.state = 'PULSE';
-                entity.pulseDirection = this.brigadePulseDirection;
-                entity.update(dt, lastTime);
-                // game._root.document.getElementById(entity.__objId).innerHTML = 'Column: ' + entity.column + ' x: ' + entity.currentPosition.x.toFixed(1) + ' y: ' + entity.currentPosition.y.toFixed(1);;
-
-            });
+        else if (this.current === 'pulse') {
+            console.log('in the pulse state');
         }
+        // var xmove;
+        // var ymove;
+        //
+        // for (var i = this._enemies.length - 1; i >= 0; i--) {
+        //     if (this._enemies[i].deleteMe) {
+        //         var removedItem = null;
+        //         this._enemies[i].reset();
+        //         removedItem = this._enemies.splice(i, 1);
+        //         this._destroyedEnemies.push(removedItem[0]);
+        //     }
+        // }
+        // //
+        // // Reset the enemies array if it is empty
+        // // TODO: Need to create a reset function to advance to next stage.
+        // if (this._enemies.length === 0) {
+        //     this.reset();
+        //     this._enemies = this._destroyedEnemies;
+        //     this._destroyedEnemies = [];
+        //     this.brigadeCurrentPoint = this.brigadeStartingPoint.clone();
+        //     this._brigadeSlideDirection = +1;
+        //     game._player.reset();
+        // }
+        //
+        // // Get the dead and alive enemies to reduce the loop iterations going
+        // // forward.
+        // var dead = this._enemies.filter(this.isDestroyed);
+        // var alive = this._enemies.filter(this.isAlive);
+        //
+        // if (dead.length > 0) {
+        //     dead.forEach(function (entity) {
+        //         entity.setSprite('explosion');
+        //         // console.log('Frame Counter: ' + entity.frameCounter);
+        //         entity.update(dt, lastTime);
+        //         // console.log('Entity id: ' + entity.__objId + '  frameCounter: ' + entity.frameCounter);
+        //     });
+        // }
+        //
+        // this.setBrigadeWidth();
+        //
+        // // TODO: Line below is for debugging purposes only.
+        // // game._root.document.getElementById('brigadeInfo').innerHTML = 'Brg Min X: ' + this.brigadeXMin.toFixed(2) + ' Brg Max X: ' + this.brigadeXMax.toFixed(2);
+        //
+        // if (this.brigadeState === 'SLIDE') {
+        //     if (this._brigadeSlideDirection === 1 && (this.brigadeXMax) > this.csize.width) {
+        //         this._brigadeSlideDirection = -1;
+        //     }
+        //     else if (this._brigadeSlideDirection === -1 && (this.brigadeXMin < 0)) {
+        //         this._brigadeSlideDirection = +1;
+        //     }
+        //     xmove = dt * 10 * this._brigadeSlideDirection;
+        //     var bCurrent = this.brigadeCurrentPoint;
+        //
+        //     alive.forEach(function emUpdateEnemies(entity) {
+        //         entity.state = 'SLIDE';
+        //         entity.update(dt, lastTime, bCurrent, xmove, ymove);
+        //     });
+        //     this.brigadeCurrentPoint.x += xmove;
+        // }
+        // else if (this.brigadeState === 'PULSE') {
+        //     // Enemies will move out from the center of the screen, they will begin
+        //     // to return when
+        //     if (lastTime > this.brigadePulseTimer) {
+        //
+        //         if (this.brigadePulseDirection === 'in') {
+        //             this.brigadePulseDirection = 'out';
+        //         }
+        //         else {
+        //             this.brigadePulseDirection = 'in';
+        //         }
+        //         this.brigadePulseTimer = lastTime + this.brigadePulseDelay;
+        //     }
+        //
+        //     this._enemies.forEach(function setEnemyPulseDirection(entity) {
+        //         // entity.state = 'PULSE';
+        //         entity.pulseDirection = this.brigadePulseDirection;
+        //         entity.update(dt, lastTime);
+        //         // game._root.document.getElementById(entity.__objId).innerHTML = 'Column: ' + entity.column + ' x: ' + entity.currentPosition.x.toFixed(1) + ' y: ' + entity.currentPosition.y.toFixed(1);;
+        //
+        //     });
+        // }
     };
 
     EnemyManager.prototype.render = function (ctx) {
@@ -307,19 +415,82 @@ var app = app || {};
         var xMax = 0;
 
         for (var e = 0; e < this._enemies.length; e++) {
-            cEnemy = this._enemies[e].currentPosition.x;
-            if (cEnemy < xMin) {
-                this.brigadeXMin = cEnemy;
-                xMin = cEnemy;
-            }
+            cEnemy = this._enemies[e];
+            if (cEnemy.current === 'brigade') {
+                if (cEnemy.currentPosition.x < xMin) {
+                    this.brigadeXMin = cEnemy.currentPosition.x;
+                    xMin = cEnemy.currentPosition.x;
+                }
 
-            if (cEnemy > xMax) {
-                this.brigadeXMax = (cEnemy + game.cellSize);
-                xMax = cEnemy;
+                if (cEnemy.currentPosition.x > xMax) {
+                    this.brigadeXMax = (cEnemy.currentPosition.x + game.cellSize);
+                    xMax = cEnemy.currentPosition.x;
+                }
             }
         }
+    };
+
+    EnemyManager.prototype.onenterstate = function(event, from, to) {
+        console.log('EnemyManager transitioned from: ' + from + ' to: ' + to + ' because of event: ' + event);
+    };
+
+    /**
+     * On start the enemies will be created. Once all enemies are created, the EnemyManager will transition to
+     * the 'begin' state.
+     * @param event
+     * @param from
+     * @param to
+     */
+    EnemyManager.prototype.onstart = function(event, from, to) {
+        this.createEnemies(); // Just creates the enemies. Does not put them on the canvas. Enemies are created once.
+        // this.launch();
+    };
+
+    EnemyManager.prototype.onlaunch = function(event, from, to) {
+        // Brigade state starts with SLIDE. As the enemies enter the scene and join the brigade
+        // they will slide back and forth until all enemies are on screen.
+        this.brigadeState = 'SLIDE';
+        // Start with Group 1, set the groupLength attribute to the length of group 1.
+        this.groupLength = this.group[1].length;
+        this.groupElementCounter = 0;
+    };
+
+    EnemyManager.prototype.onmarch = function(event, from, to) {
+
+    };
+
+    EnemyManager.prototype.onattack = function(event, from, to) {
+
+    };
+
+    /**
+     * On reset the state of the EnemyManager will transition to 'levelcomplete'.
+     * The EnemyManager will remain in this state until the screen has been updated to show
+     * the level complete information, as well as the beginning of the next level.
+     * @param event
+     * @param from
+     * @param to
+     */
+    EnemyManager.prototype.onreset = function(event, from, to) {
+
     };
 
     app.EnemyManager = EnemyManager;
 
 }());
+
+StateMachine.create({
+    target: app.EnemyManager.prototype,
+    initial: 'init',
+    events: [
+        { name: 'start',    from: 'init',          to: 'create' },        // This is executed only once during the game.
+        { name: 'launch',   from: 'create',        to: 'begin' },         // This transition occurs only once during the game.
+        { name: 'march',    from: 'begin',         to: 'slide' },
+        { name: 'attack',   from: 'slide',         to: 'pulse' },
+        { name: 'march',    from: 'pulse',         to: 'slide' },
+        { name: 'reset',    from: 'begin',         to: 'levelcomplete' },
+        { name: 'reset',    from: 'slide',         to: 'levelcomplete' },
+        { name: 'reset',    from: 'pulse',         to: 'levelcomplete' },
+        { name: 'launch',   from: 'levelcomplete', to: 'begin' }
+    ]
+});

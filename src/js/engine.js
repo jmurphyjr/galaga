@@ -3,6 +3,7 @@ var app = app || {};
     'use strict';
     var win = global.window;
     var doc = win.document;
+    var f = doc.querySelector("#framespersecond");
     var canvas = doc.createElement('canvas');
     var ctx = canvas.getContext('2d');
     var running = false;
@@ -123,10 +124,9 @@ var app = app || {};
         for (var i = entities.length - 1; i >= 0; i--) {
             // entity.update(dt, lastTime);
             // if (collisionDetection(entity)) {
-            if (collisionDetection(entities[i])) {
-                // console.log('Collission Detected');
-                // console.log(entities[i]);
-                // player.score++;
+            // If already destroyed, don't check again.
+            if (entities[i].current !== 'destroyed') {
+                collisionDetection(entities[i]);
             }
             entities[i].update(dt, lastTime);
 
@@ -162,14 +162,14 @@ var app = app || {};
     }
 
 
-    //grid width and height
+    // grid width and height
     var bw = canvas.width;
     var bh = canvas.height;
-//padding around grid
+    // padding around grid
     var p = 0;
-//size of canvas
-    var cw = bw + (p*2) + 1;
-    var ch = bh + (p*2) + 1;
+    // size of canvas
+    var cw = bw + (p * 2) + 1;
+    var ch = bh + (p * 2) + 1;
 
     // var canvas = $('<canvas/>').attr({width: cw, height: ch}).appendTo('body');
 
@@ -198,15 +198,13 @@ var app = app || {};
         if (player.missiles.length > 0) {
             for (var i = 0; i < player.missiles.length; i++) {
                 for (var t = 0; t < e._enemies.length; t++) {
-                    if (e._enemies[t].destroyed) {
-                        // Can't be destroyed again, thus return false
-                        // console.log('already destroyed');
-                    } else if (player.missiles[i].currentPosition.x < e._enemies[t].currentPosition.x + e._enemies[t].rect.width &&
+                    if (player.missiles[i].currentPosition.x < e._enemies[t].currentPosition.x + e._enemies[t].rect.width &&
                         player.missiles[i].currentPosition.x + player.missiles[i].rect.width > e._enemies[t].currentPosition.x &&
                         player.missiles[i].currentPosition.y < e._enemies[t].currentPosition.y + e._enemies[t].rect.height - 10 &&
                         player.missiles[i].currentPosition.y + player.missiles[i].rect.height > e._enemies[t].currentPosition.y) {
                         // Only destroy the first entity the missile collides with and destroy the missile.
-                        e._enemies[t].setDestroy();
+                        // e._enemies[t].setDestroy();
+                        e._enemies[t].killed();
                         player.missiles[i].setDestroy();
                         player.score += e._enemies[t].getPointValue();
                         return true;
@@ -236,6 +234,7 @@ var app = app || {};
         update(dt, lastTime);
         render(ctx);
         lastTime = now;
+        f.innerHTML = 'Frames / second: ' + fps.getFPS();
         win.requestAnimationFrame(main);
     }
     // app.Engine = Engine;
