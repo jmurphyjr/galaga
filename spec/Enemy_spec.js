@@ -36,5 +36,74 @@ describe('App Enemy', function() {
         expect( function() {
             enemy.setSprite(1);
         }).toThrow(new Error('sprite must be string type'));
-    })
+    });
+
+    describe('state transitions', function() {
+        it('starting state should be removed', function() {
+            expect(enemy.current).toBe('removed');
+        });
+
+        it('should transition to entering when start() is executed', function() {
+            enemy.start();
+            expect(enemy.current).toBe('entering');
+        });
+
+        it('should transition to brigade when lineup() is executed', function() {
+            console.log(enemy);
+            enemy.start();
+            enemy.lineup();
+            expect(enemy.current).toBe('brigade');
+        });
+
+        it('from brigade state', function() {
+            enemy.start();
+            enemy.lineup();
+            expect(enemy.current).toBe('brigade');
+            enemy.attack();
+            expect(enemy.current).toBe('attacking');
+            enemy.lineup();
+            expect(enemy.current).toBe('brigade');
+            enemy.fly();
+            expect(enemy.current).toBe('flying');
+            enemy.lineup();
+            enemy.killed();
+            expect(enemy.current).toBe('destroyed');
+        });
+
+        it('from entering state', function() {
+            enemy.start();
+            expect(enemy.current).toBe('entering');
+            enemy.killed();
+            expect(enemy.current).toBe('destroyed');
+            enemy.leave();
+            enemy.start();
+            enemy.lineup();
+            expect(enemy.current).toBe('brigade');
+        });
+
+        it('from attacking state', function() {
+            enemy.start();
+            enemy.lineup();
+            enemy.attack();
+            expect(enemy.current).toBe('attacking');
+            enemy.lineup();
+            expect(enemy.current).toBe('brigade');
+            enemy.attack();
+            enemy.killed();
+            expect(enemy.current).toBe('destroyed');
+        });
+
+        it('from flying state', function() {
+            enemy.start();
+            enemy.lineup();
+            enemy.fly();
+            expect(enemy.current).toBe('flying');
+            enemy.lineup();
+            expect(enemy.current).toBe('brigade');
+            enemy.fly();
+            enemy.killed();
+            expect(enemy.current).toBe('destroyed');
+        })
+
+    });
 });
