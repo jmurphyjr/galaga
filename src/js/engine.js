@@ -204,7 +204,9 @@ var app = app || {};
                         player.missiles[i].currentPosition.y + player.missiles[i].rect.height > e._enemies[t].currentPosition.y) {
                         // Only destroy the first entity the missile collides with and destroy the missile.
                         // e._enemies[t].setDestroy();
-                        e._enemies[t].killed();
+                        if (e._enemies[t].destroyed !== 'destroyed') {
+                            e._enemies[t].killed();
+                        }
                         player.missiles[i].setDestroy();
                         player.score += e._enemies[t].getPointValue();
                         return true;

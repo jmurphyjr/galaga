@@ -229,7 +229,14 @@ var app = app || {};
         this.pulseStartFlag = false;
         this.previousstate = null;
 
+        this.enterCoords = [];
+        this.enterAngles = [];
+        this.enterTimer = 0;
+        this.enterDelay = 20;
+        this.enterIndex = 0;
         this.enterStart = true;
+
+        this.group = null;
     };
     Enemy.prototype = Object.create(app.Entity.prototype);
     Enemy.prototype.constructor = Enemy;
@@ -244,7 +251,7 @@ var app = app || {};
         this.sprite = this.sprites[this.type];
         this.frameCounter = 0;
         this.state = 'SLIDE';
-        this.currentPosition = this.startingPosition;
+        // this.currentPosition = this.startingPosition;
 
 
     };
@@ -280,15 +287,10 @@ var app = app || {};
      * @method
      * @param {number} dt
      * @param {Number} lastTime description
-     * @param {Point} refPoint description
-     * @param {Number} xmove
-     * @param {Number} ymove description
-     * @param {Number} colOffset
-     * @param {Number} rowOffset description
      */
-    Enemy.prototype.update = function (dt, lastTime, refPoint, xmove, ymove) {
+    Enemy.prototype.update = function (dt, lastTime) {
 
-        if (this.destroyed) {
+        if (this.current === 'destroyed') {
             this.sprite = this.sprites.explosion;
             if (this.frameCounter === null) {
                 this.frameCounter = 0;
@@ -308,24 +310,128 @@ var app = app || {};
                     this.leave();
                 }
             }
-            // return;
         }
         else {
             // In the original game, the enemies would spread out
 
             if (this.current === 'removed') {
-                // Enemy hasn't entered the scene yet, thus locate off the canvas.
+                // Enemy hasn't entered the scene yet or has been destroyed
+                // thus locate off the canvas.
                 this.currentPosition = new app.Point(-100, -100);
             }
             else if (this.current === 'entering') {
                 // console.log('I will fly in.');
 
-                if (this.enterStart) {
-                    this.currentPosition.x = this._game.canvasSize.width / 2;
-                    this.currentPosition.y = -50;
-                    var points = calculateControlPoints('triangle', this.currentPosition);
-                    this.enterStart = false;
+                if (this.enterCoords.length === 0) {
+                    var points = null;
+                    if (this.group === 1) {
+                        this.currentPosition.x = this._game.canvasSize.width / 2;
+                        this.currentPosition.y = -50;
+                        points = calculateControlPoints('triangle', 'ccw', this.currentPosition, new app.Point(this._game.canvasSize.width / 2, (this._em.brigadeStartRow + 5) * this._game.cellSize));
+                    }
+                    else if (this.group === 2) {
+                        this.currentPosition.x = this._game.canvasSize.width / 2;
+                        this.currentPosition.y = -50;
+                        points = calculateControlPoints('triangle', 'cw', this.currentPosition, new app.Point(this._game.canvasSize.width / 2, (this._em.brigadeStartRow + 4) * this._game.cellSize));
+                    }
+                    else if (this.group === 3) {
+                        this.currentPosition.x = -50;
+                        this.currentPosition.y = this._game.canvasSize.height * 0.80;
+                        points = calculateControlPoints('sideentry', 'left', this.currentPosition, new app.Point(this._game.canvasSize.width / 2, (this._em.brigadeStartRow + 4) * this._game.cellSize));
+                    }
+                    else if (this.group === 4) {
+                        this.currentPosition.x = this._game.canvasSize.width + 50;
+                        this.currentPosition.y = this._game.canvasSize.height * 0.80;
+                        points = calculateControlPoints('sideentry', 'right', this.currentPosition, new app.Point(this._game.canvasSize.width / 2, (this._em.brigadeStartRow + 6) * this._game.cellSize));
+                    }
+                    else if (this.group === 5) {
+                        this.currentPosition.x = this._game.canvasSize.width / 2;
+                        this.currentPosition.y = -50;
+                        points = calculateControlPoints('triangle', 'ccw', this.currentPosition, new app.Point(this._game.canvasSize.width / 2, (this._em.brigadeStartRow + 6) * this._game.cellSize));
+                    }
+                    else if (this.group === 6) {
+                        this.currentPosition.x = this._game.canvasSize.width / 2;
+                        this.currentPosition.y = -50;
+                        points = calculateControlPoints('triangle', 'cw', this.currentPosition, new app.Point(this._game.canvasSize.width / 2, (this._em.brigadeStartRow + 5) * this._game.cellSize));
+                    }
                     //         // console.log(states.attack);
+                    this.enterCoords.pushArrayMembers(calculateBezierCurvePoints(points[0], points[1], points[2], points[3]));
+                    this.enterAngles.pushArrayMembers(calculateBezierCurveAngles(points[0], points[1], points[2], points[3]));
+                }
+                else {
+                    if (this.enterCoords.length !== 0) {
+                        if (lastTime > this.enterTimer) {
+                            this.currentPosition.x = this.enterCoords[this.enterIndex].x;
+                            this.currentPosition.y = this.enterCoords[this.enterIndex].y;
+                            this.enterIndex++;
+                            if (this.enterIndex === this.enterCoords.length) {
+                                this.attackIndex = 0;
+                                this.lineup();
+                            }
+                            this.enterTimer = lastTime + this.enterDelay;
+                        }
+                    }
+
+                }
+
+            }
+            else if (this.current === 'brigade') {
+                var xMove = null;
+                var yMove = null;
+                if (this.atHome()) {
+
+                    if (game.enemyManager.brigadeState === 'SLIDE') {
+                        xMove = this._em.brigadeCurrentPoint.x + (this.column - game.enemyManager.brigadeStartColumn) * game.cellSize;
+                        yMove = this._em.brigadeCurrentPoint.y + (this.row - game.enemyManager.brigadeStartRow) * game.cellSize;
+                        this.currentPosition.x = xMove;
+                        this.currentPosition.y = yMove;
+                    }
+                    else if (game.enemyManager.brigadeState === 'PULSE') {
+                        var colRatio = (this.column - game.enemyManager.brigadeStartColumn) / 5;
+                        if (colRatio <= 1) {
+                            this.pulseSide = 'left';
+                        }
+                        else if (colRatio > 1) {
+                            this.pulseSide = 'right';
+                        }
+                        this._pulseEnemy(this);
+
+                        xMove = dt * 2 * Math.abs((7.5 - this.column)) * this.direction;
+
+                        this.lastPosition = this.currentPosition;
+                        this.currentPosition.x += xMove;
+
+                        if (this.type === 'green' || this.type === 'blue') {
+                            // This guys do not move in the vertical.
+                            return;
+                        }
+                        else {
+                            yMove = dt * 2 * Math.abs(game.enemyManager.brigadeStartRow - this.row + 1) * this.vertDirection;
+                            this.currentPosition.y += yMove;
+                        }
+                    }
+                }
+                else {
+                    // Not at home, therefore, ease enemy into Home position.
+                    var xDistance = (this._em.brigadeCurrentPoint.x + (this.column - game.enemyManager.brigadeStartColumn) * game.cellSize) - this.currentPosition.x;
+                    var yDistance = (this._em.brigadeCurrentPoint.y + (this.row - game.enemyManager.brigadeStartRow) * game.cellSize) - this.currentPosition.y;
+                    var distance = Math.sqrt(xDistance * xDistance + yDistance * yDistance);
+                    if (distance > 1) {
+                        this.currentPosition.x += xDistance * 0.05;
+                        this.currentPosition.y += yDistance * 0.05;
+                    }
+                }
+            }
+            else if (this.current === 'attacking') {
+                // this state is the enemy flying, firing a random number of missiles
+                // during the attack.
+                // console.log(this.__objId + ' is attacking');
+                // attack causes the enemy to rise up, rotate either right or left depending
+                // column, and continue to attack.
+                if (this.attackStart) {
+                    var points = calculateControlPoints('triangle', 'cw', this.currentPosition);
+                    this.attackStart = false;
+                    // console.log(states.attack);
                     this.attackPoints.pushArrayMembers(calculateBezierCurvePoints(points[0], points[1], points[2], points[3]));
                     this.attackAngles.pushArrayMembers(calculateBezierCurveAngles(points[0], points[1], points[2], points[3]));
                 }
@@ -344,48 +450,7 @@ var app = app || {};
                             this.attackTimer = lastTime + this.attackMovementSpacing;
                         }
                     }
-
                 }
-
-            }
-            else if (this.current === 'brigade') {
-                var xMove = null;
-                var yMove = null;
-                if (game.enemyManager.brigadeState === 'SLIDE') {
-                    xMove = this._em.brigadeCurrentPoint.x + (this.column - game.enemyManager.brigadeStartColumn) * game.cellSize;
-                    yMove = this._em.brigadeCurrentPoint.y + (this.row - game.enemyManager.brigadeStartRow) * game.cellSize;
-                    this.currentPosition.x = xMove;
-                    this.currentPosition.y = yMove;
-                }
-                else if (game.enemyManager.brigadeState === 'PULSE') {
-                    var colRatio = (this.column - game.enemyManager.brigadeStartColumn) / 5;
-                    if (colRatio <= 1) {
-                        this.pulseSide = 'left';
-                    }
-                    else if (colRatio > 1) {
-                        this.pulseSide = 'right';
-                    }
-                    this._pulseEnemy(this);
-
-                    xMove = dt * 2 * Math.abs((7.5 - this.column)) * this.direction;
-
-                    this.lastPosition = this.currentPosition;
-                    this.currentPosition.x += xMove;
-
-                    if (this.type === 'green' || this.type === 'blue') {
-                        // This guys do not move in the vertical.
-                        return;
-                    }
-                    else {
-                        yMove = dt * 2 * Math.abs(game.enemyManager.brigadeStartRow - this.row + 1) * this.vertDirection;
-                        this.currentPosition.y += yMove;
-                    }
-                }
-            }
-            else if (this.current === 'attacking') {
-                // this state is the enemy flying, firing a random number of missiles
-                // during the attack.
-                console.log(this.__objId + ' is attacking');
             }
             else if (this.current === 'flying') {
                 // this state is just the enemy flying around the screen
@@ -478,18 +543,26 @@ var app = app || {};
             // }
         }
     };
+
     Enemy.prototype.render = function (ctx) {
         // console.log(this.currentPosition);
         // if (this.destroyed) {
-        if (this.current === 'destroyed') {
+        if (this.destroyed) {
             renderDestroyed(this, ctx);
         }
-        // else if (this.state === 'ATTACK' && !this.attackStart) {
-        //     ctx.translate(this.currentPosition.x, this.currentPosition.y);
-        //     ctx.rotate(this.attackAngles[this.attackIndex]);
-        //     ctx.drawImage(Resources.get(this.sprite.image), -((this.sprite.size.width * this.sprite.scale) / 2), -((this.sprite.size.height * this.sprite.scale) / 2), this.sprite.size.width * this.sprite.scale, this.sprite.size.height * this.sprite.scale);
-        //     ctx.setTransform(1, 0, 0, 1, 0, 0);
-        // }
+        else if (this.current === 'entering') {
+            ctx.translate(this.currentPosition.x, this.currentPosition.y);
+            ctx.rotate(this.enterAngles[this.enterIndex]);
+            ctx.drawImage(Resources.get(this.sprite.image), -((this.sprite.size.width * this.sprite.scale) / 2), -((this.sprite.size.height * this.sprite.scale) / 2), this.sprite.size.width * this.sprite.scale, this.sprite.size.height * this.sprite.scale);
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+        }
+        else if (this.current === 'attacking') {
+            ctx.translate(this.currentPosition.x, this.currentPosition.y);
+            ctx.rotate(this.attackAngles[this.attackIndex]);
+            ctx.drawImage(Resources.get(this.sprite.image), -((this.sprite.size.width * this.sprite.scale) / 2), -((this.sprite.size.height * this.sprite.scale) / 2), this.sprite.size.width * this.sprite.scale, this.sprite.size.height * this.sprite.scale);
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+        }
         // else if (this.state === 'CIRCLE' && !this.attackStart) {
         //     ctx.translate(this.currentPosition.x, this.currentPosition.y);
         //     ctx.rotate(this.attackAngles[this.attackIndex]);
@@ -513,7 +586,14 @@ var app = app || {};
         var spF = sp.frames;
         var cp = enemy.currentPosition;
         // console.log('Enemy: 323:  Entity id: ' + enemy.__objId + '  frameCounter: ' + enemy.frameCounter);
-        ctx.drawImage(Resources.get(sp.image), spF[frmCnt].x, spF[frmCnt].y, spF[frmCnt].width, spF[frmCnt].height, cp.x, cp.y, spF[frmCnt].width, spF[frmCnt].height);
+        if (spF === 'undefined') {
+            // The frameCounter was incremented so need to go back a step
+            enemy.frameCounter--;
+            app.Entity.prototype.render.call(this, ctx);
+        }
+        else {
+            ctx.drawImage(Resources.get(sp.image), spF[frmCnt].x, spF[frmCnt].y, spF[frmCnt].width, spF[frmCnt].height, cp.x, cp.y, spF[frmCnt].width, spF[frmCnt].height);
+        }
     };
 
     Enemy.prototype._pulseEnemy = function () {
@@ -548,6 +628,22 @@ var app = app || {};
         }
     };
 
+    /**
+     * @description Determines if the enemy is at home in it's brigade column/row.
+     * @method
+     * @returns {boolean}
+     */
+    Enemy.prototype.atHome = function() {
+        var atHome = false;
+        var xHome = this._em.brigadeCurrentPoint.x + (this.column - game.enemyManager.brigadeStartColumn) * game.cellSize;
+        var yHome = this._em.brigadeCurrentPoint.y + (this.row - game.enemyManager.brigadeStartRow) * game.cellSize;
+
+        if ((xHome < (this.currentPosition.x + 1) && xHome > (this.currentPosition.x - 1)) && (yHome < (this.currentPosition.y + 1) && yHome > (this.currentPosition.y -1 ))) {
+            atHome = true;
+        }
+
+        return atHome;
+    };
 
     /**
      * Define Callbacks for the various states an enemy can enter.
@@ -572,6 +668,11 @@ var app = app || {};
      */
     Enemy.prototype.onstart = function(event, from, to) {
         this.currentPosition = new app.Point(-100, -100);
+        this.destroyed = false;
+    };
+
+    Enemy.prototype.onleaveentering = function() {
+        // return StateMachine.ASYNC;
     };
 
     /**
@@ -586,11 +687,11 @@ var app = app || {};
      * @param to
      */
     Enemy.prototype.onlineup = function(event, from, to) {
-        this._em.brigadeCurrentPoint = this._em.brigadeStartingPoint;
-        var xMove = this._em.brigadeStartingPoint.x + (this.column - this._em.brigadeStartColumn) * this._game.cellSize;
-        var yMove = this._em.brigadeStartingPoint.y + (this.row - this._em.brigadeStartRow) * this._game.cellSize;
-        this.currentPosition.x = xMove;
-        this.currentPosition.y = yMove;
+        // this._em.brigadeCurrentPoint = this._em.brigadeStartingPoint;
+        // var xMove = this._em.brigadeStartingPoint.x + (this.column - this._em.brigadeStartColumn) * this._game.cellSize;
+        // var yMove = this._em.brigadeStartingPoint.y + (this.row - this._em.brigadeStartRow) * this._game.cellSize;
+        // this.currentPosition.x = xMove;
+        // this.currentPosition.y = yMove;
 
     };
 
@@ -612,6 +713,7 @@ var app = app || {};
      * @param to
      */
     Enemy.prototype.onattack = function(event, from, to) {
+        this.attackStart = true;
 
     };
 
@@ -653,9 +755,12 @@ var app = app || {};
      * @param to
      */
     Enemy.prototype.onleave = function(event, from, to) {
-        this.deleteMe = true;
-        this.currentPosition.x = -100;
-        this.currentPosition.y = -100;
+        // this.deleteMe = true;
+        // this.destroyed = true;
+        // this.currentPosition.x = -100;
+        // this.currentPosition.y = -100;
+        this.reset();
+        this.enterIndex = 0;
     };
 
 

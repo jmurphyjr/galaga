@@ -65,7 +65,7 @@ var app = app || {};
 
         this.brigadePulseTimer = 0;
 
-        this.brigadePulseDelay = 2000;
+        this.brigadePulseDelay = 5000;
 
         this.brigadePulseDirection = 'in';
 
@@ -82,7 +82,8 @@ var app = app || {};
          * @type {Point}
          * @private
          */
-        this.brigadeCurrentPoint = this.brigadeStartingPoint.clone();
+        this.brigadeCurrentPoint = new app.Point();
+        this.brigadeCurrentPoint.copy(this.brigadeStartingPoint);
         /**
          * @description For the brigade slide, the direction of the slide.
          * @property _brigadeSlideDirection
@@ -140,10 +141,10 @@ var app = app || {};
         this.groupElementCounter = 0;
         this.groupLength = 0;
         this.groupLaunchTimer = 0;
-        this.groupLaunchDelay = 200;
+        this.groupLaunchDelay = 5000;
 
         this.groupEnemyTimer = 0;
-        this.groupEnemyDelay = 200;
+        this.groupEnemyDelay = 100;
     }
 
     /**
@@ -168,7 +169,8 @@ var app = app || {};
             enemy = new app.GreenEnemy(new app.Point(startingX, startingY));
             enemy.setRow(3);
             enemy.setColumn(t);
-            // All GreenEnemies are in Group 2, they need to be added to the array in all even locations.
+            // All GreenEnemies are in Group 3, they need to be added to the array in all even locations.
+            enemy.group = 3;
             this.group[3][g3Location] = enemy;
             this._enemies.push(enemy);
             g3Location += 2;
@@ -184,14 +186,17 @@ var app = app || {};
                 enemy.setRow(row);
                 enemy.setColumn(j);
                 if (j === 6 || j === 9) {
+                    enemy.group = 3;
                     this.group[3][g3Location] = enemy;
                     g3Location += 2;
                 }
                 else if (j === 7 || j === 8) {
+                    enemy.group = 1;
                     this.group[1][g1Location] = enemy;
                     g1Location += 1;
                 }
                 else if (j === 4 || j === 5 || j === 10 || j === 11) {
+                    enemy.group = 4;
                     this.group[4][g4Location] = enemy;
                     g4Location += 1;
                 }
@@ -202,21 +207,24 @@ var app = app || {};
         for (var k = 6; k <= 7; k++) {
             // Blue Yellow starts in column 1 and are located in rows 4 and 5.
 
-            for (var n = 2; n <= 13; n++) {
+            for (var n = 3; n <= 12; n++) {
                 startingX = n * game.cellSize;
                 startingY = k * game.cellSize;
                 enemy = new app.Enemy(new app.Point(startingX, startingY), 'blueyellow');
                 enemy.setRow(k);
                 enemy.setColumn(n);
                 if (n === 7 || n === 8) {
+                    enemy.group = 2;
                     this.group[2][g2Location] = enemy;
                     g2Location += 1;
                 }
                 else if (n === 5 || n === 6 || n === 9 || n === 10) {
+                    enemy.group = 5;
                     this.group[5][g5Location] = enemy;
                     g5Location += 1;
                 }
                 else if (n === 3 || n === 4 || n == 11 || n === 12) {
+                    enemy.group = 6;
                     this.group[6][g6Location] = enemy;
                     g6Location += 1;
                 }
@@ -268,8 +276,11 @@ var app = app || {};
      * @param lastTime
      */
     EnemyManager.prototype.update = function (dt, lastTime) {
-
-        if (this.current === 'begin') {
+        var alive = this._enemies.filter(this.isAlive);
+        if (alive.length === 0) {
+            this.reset();
+        }
+        if (this.current === 'group1') {
             // Launch enemies not onscreen already.
             // console.log('I will begin launching the enemies onto the screen');
 
@@ -278,27 +289,47 @@ var app = app || {};
             //      execute start on enemy in groupCounter
             // else
             //      do nothing this iteration
-            if (lastTime > this.groupLaunchTimer) {
+            if (lastTime > this.groupEnemyTimer) {
                 if (this.groupElementCounter === this.groupLength) {
 
-                    this.groupCounter += 1;
-                    this.groupElementCounter = 0;
-                    if (this.groupCounter === 7) {
-                        this.march();
+                    // if (lastTime > this.groupLaunchTimer) {
+                    // Check that all group1 elements are home before calling next group.
+                    if (this.groupHome(this.group[1])) {
+                        this.nextgroup();
+                        this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
                         return;
                     }
-                    this.groupLength = this.group[this.groupCounter].length;
+                    else {
+                        // console.log('not home');
+                    }
+                    // }
                 }
-                this.group[this.groupCounter][this.groupElementCounter].start();
-                this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
-                this.groupElementCounter++;
+                else {
+                    this.group[this.groupCounter][this.groupElementCounter].start();
+                    this.group[this.groupCounter + 1][this.groupElementCounter].start();
+                    this.groupEnemyTimer = lastTime + this.groupEnemyDelay;
+                    this.groupElementCounter++;
+                    this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
+                }
             }
 
-            this._enemies.forEach(function updateEnemyBegin(entity) {
-                entity.update(dt, lastTime);
-                // game._root.document.getElementById(entity.__objId).innerHTML = 'Column: ' + entity.column + ' x: ' + entity.currentPosition.x.toFixed(1) + ' y: ' + entity.currentPosition.y.toFixed(1);;
+        }
+        else if (this.current === 'group3' || this.current === 'group4' || this.current === 'group5' || this.current === 'group6') {
+            if (lastTime > this.groupLaunchTimer) {
+                if (lastTime > this.groupEnemyTimer) {
+                    if (this.groupElementCounter === this.groupLength) {
+                        if (this.groupHome(this.groupCounter)) {
+                        this.nextgroup();
+                        this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
+                        return;
+                        }
+                    }
+                    this.group[this.groupCounter][this.groupElementCounter].start();
+                    this.groupEnemyTimer = lastTime + this.groupEnemyDelay;
+                    this.groupElementCounter++;
+                }
 
-            });
+            }
         }
         else if (this.current === 'slide') {
             this.setBrigadeWidth();
@@ -321,6 +352,12 @@ var app = app || {};
         else if (this.current === 'pulse') {
             console.log('in the pulse state');
         }
+        this._enemies.forEach(function updateEnemyBegin(entity) {
+            entity.update(dt, lastTime);
+            // game._root.document.getElementById(entity.__objId).innerHTML = 'Column: ' + entity.column + ' x: ' + entity.currentPosition.x.toFixed(1) + ' y: ' + entity.currentPosition.y.toFixed(1);;
+
+        });
+
         // var xmove;
         // var ymove;
         //
@@ -409,6 +446,19 @@ var app = app || {};
         });
     };
 
+    EnemyManager.prototype.groupHome = function(g) {
+        var home = true;
+
+        for (var i = 0; i < g.length; i++) {
+            if (g[i].current !== 'removed') {
+                if (!g[i].atHome()) {
+                    return false;
+                }
+            }
+        }
+        return home;
+    };
+
     EnemyManager.prototype.setBrigadeWidth = function() {
         var cEnemy = null;
         var xMin = 1000;
@@ -453,6 +503,41 @@ var app = app || {};
         // Start with Group 1, set the groupLength attribute to the length of group 1.
         this.groupLength = this.group[1].length;
         this.groupElementCounter = 0;
+        this.groupCounter = 1;
+    };
+
+    EnemyManager.prototype.onnextgroup = function(event, from, to) {
+        if (to === 'group1') {
+            this.groupCounter = 1;
+            this.groupLength = this.group[1].length;
+            this.groupElementCounter = 0;
+        }
+        if (to === 'group2') {
+            this.groupCounter = 2;
+            this.groupLength = this.group[2].length;
+            this.groupElementCounter = 0;
+        }
+        else if (to === 'group3') {
+            this.groupCounter = 3;
+            this.groupLength = this.group[3].length;
+            this.groupElementCounter = 0;
+
+        }
+        else if (to === 'group4') {
+            this.groupCounter = 4;
+            this.groupLength = this.group[4].length;
+            this.groupElementCounter = 0;
+        }
+        else if (to === 'group5') {
+            this.groupCounter = 5;
+            this.groupLength = this.group[5].length;
+            this.groupElementCounter = 0;
+        }
+        else if (to === 'group6') {
+            this.groupCounter = 6;
+            this.groupLength = this.group[6].length;
+            this.groupElementCounter = 0;
+        }
     };
 
     EnemyManager.prototype.onmarch = function(event, from, to) {
@@ -472,6 +557,13 @@ var app = app || {};
      * @param to
      */
     EnemyManager.prototype.onreset = function(event, from, to) {
+        this.brigadeCurrentPoint.copy(this.brigadeStartingPoint);
+        console.log(this.brigadeCurrentPoint);
+        console.log(this.brigadeStartingPoint);
+        this._enemies.forEach(function(entity) {
+            entity.reset();
+        });
+        this.launch();
 
     };
 
@@ -483,14 +575,19 @@ StateMachine.create({
     target: app.EnemyManager.prototype,
     initial: 'init',
     events: [
-        { name: 'start',    from: 'init',          to: 'create' },        // This is executed only once during the game.
-        { name: 'launch',   from: 'create',        to: 'begin' },         // This transition occurs only once during the game.
-        { name: 'march',    from: 'begin',         to: 'slide' },
-        { name: 'attack',   from: 'slide',         to: 'pulse' },
-        { name: 'march',    from: 'pulse',         to: 'slide' },
-        { name: 'reset',    from: 'begin',         to: 'levelcomplete' },
-        { name: 'reset',    from: 'slide',         to: 'levelcomplete' },
-        { name: 'reset',    from: 'pulse',         to: 'levelcomplete' },
-        { name: 'launch',   from: 'levelcomplete', to: 'begin' }
+        { name: 'start',     from: 'init',          to: 'create' },        // This is executed only once during the game.
+        { name: 'launch',    from: 'create',        to: 'group1' },         // This transition occurs only once during the game.
+        // { name: 'nextgroup', from: 'group1',        to: 'group2' },
+        { name: 'nextgroup', from: 'group1',        to: 'group3' },
+        { name: 'nextgroup', from: 'group3',        to: 'group4' },
+        { name: 'nextgroup', from: 'group4',        to: 'group5' },
+        { name: 'nextgroup', from: 'group5',        to: 'group6' },
+        { name: 'nextgroup', from: 'group6',        to: 'slide' },
+        { name: 'attack',    from: 'slide',         to: 'pulse' },
+        { name: 'march',     from: 'pulse',         to: 'slide' },
+        { name: 'reset',     from: 'begin',         to: 'levelcomplete' },
+        { name: 'reset',     from: 'slide',         to: 'levelcomplete' },
+        { name: 'reset',     from: 'pulse',         to: 'levelcomplete' },
+        { name: 'launch',    from: 'levelcomplete', to: 'group1' }
     ]
 });
