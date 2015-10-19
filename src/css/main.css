@@ -1,6 +1,6 @@
 body {
     background-color: grey;
-    width: 100%;
+    width: 90%;
 }
 #scoreboard {
     float: left;
@@ -9,5 +9,5 @@ body {
     float: left;
 }
 canvas {
-    width: 100%;
+
 }

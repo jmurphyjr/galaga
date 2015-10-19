@@ -203,7 +203,9 @@ var app = app || {};
          * @description Used to limit the movement.
          */
         this.attackTimer = 0;
-        this.attackMovementSpacing = 20;
+        this.attackMovementSpacing = 50;
+        this.attackMissileCounter = 3;
+
         /**
          * The row the enemy exists, within the Brigade.
          * @property row
@@ -290,7 +292,8 @@ var app = app || {};
      */
     Enemy.prototype.update = function (dt, lastTime) {
 
-        if (this.current === 'destroyed') {
+        //if (this.current === 'destroyed') {
+        if (this.destroyed) {
             this.sprite = this.sprites.explosion;
             if (this.frameCounter === null) {
                 this.frameCounter = 0;
@@ -306,7 +309,7 @@ var app = app || {};
             if (this.frameCounter >= (Object.keys(this.sprite.frames).length - 1)) {
                 // console.log('Entity id: ' + this.__objId + '  frameCounter: ' + this.frameCounter);
                 // this.deleteMe = true;
-                if (this.current === 'destroyed') {
+                if (this.destroyed && this.current === 'destroyed') {
                     this.leave();
                 }
             }
@@ -423,11 +426,7 @@ var app = app || {};
                 }
             }
             else if (this.current === 'attacking') {
-                // this state is the enemy flying, firing a random number of missiles
-                // during the attack.
-                // console.log(this.__objId + ' is attacking');
-                // attack causes the enemy to rise up, rotate either right or left depending
-                // column, and continue to attack.
+
                 if (this.attackStart) {
                     var points = calculateControlPoints('triangle', 'cw', this.currentPosition);
                     this.attackStart = false;
@@ -446,6 +445,9 @@ var app = app || {};
                                 this.attackAngles = [];
                                 this.attackIndex = 0;
                                 this.lineup();
+                            }
+                            if (lastTime > this.missileFireTimer) {
+
                             }
                             this.attackTimer = lastTime + this.attackMovementSpacing;
                         }
@@ -547,7 +549,8 @@ var app = app || {};
     Enemy.prototype.render = function (ctx) {
         // console.log(this.currentPosition);
         // if (this.destroyed) {
-        if (this.destroyed) {
+        if (this.destroyed && this.current === 'destroyed') {
+
             renderDestroyed(this, ctx);
         }
         else if (this.current === 'entering') {
@@ -643,6 +646,10 @@ var app = app || {};
         }
 
         return atHome;
+    };
+
+    Enemy.prototype.isAlive = function() {
+        return (this.current === 'brigade' || this.current === 'entering' || this.current === 'attacking');
     };
 
     /**
@@ -741,6 +748,8 @@ var app = app || {};
      */
     Enemy.prototype.onkilled = function(event, from, to) {
         this.setDestroy();
+        this.sprite = this.sprites.explosion;
+        this.frameCounter = 0;
 
     };
 
@@ -757,10 +766,11 @@ var app = app || {};
     Enemy.prototype.onleave = function(event, from, to) {
         // this.deleteMe = true;
         // this.destroyed = true;
-        // this.currentPosition.x = -100;
-        // this.currentPosition.y = -100;
-        this.reset();
-        this.enterIndex = 0;
+        this.currentPosition.x = -100;
+        this.currentPosition.y = -100;
+        // this.reset();
+        // this.enterIndex = 0;
+        console.log('onleave event: ' + event + ' from: ' + from + ' to: ' + to);
     };
 
 

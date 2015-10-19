@@ -146,11 +146,16 @@ var app = app || {};
         ctx.fillText(player.score.toString(), 40, 50);
         ctx.fillText(highScore.toString(), ((canvas.width / 2)), 50);
         ctx.textAlign = 'center';
-        entities.forEach(function renderEachEntity(entity) {
-            entity.render(ctx);
-        });
-        player.render(ctx);
-
+        if (gameState.current === 'menu') {
+            ctx.fillStyle = 'red';
+            ctx.fillText('Player 1', canvas.width / 2, canvas.height * 0.40);
+        }
+        else {
+            entities.forEach(function renderEachEntity(entity) {
+                entity.render(ctx);
+            });
+            player.render(ctx);
+        }
         // TODO: The function below should only be used for debugging entity location on the screen
         // TODO: to use otherwise, will cause "jank" on the screen.
         // drawBoard();
@@ -204,7 +209,7 @@ var app = app || {};
                         player.missiles[i].currentPosition.y + player.missiles[i].rect.height > e._enemies[t].currentPosition.y) {
                         // Only destroy the first entity the missile collides with and destroy the missile.
                         // e._enemies[t].setDestroy();
-                        if (e._enemies[t].destroyed !== 'destroyed') {
+                        if (e._enemies[t].isAlive()) {
                             e._enemies[t].killed();
                         }
                         player.missiles[i].setDestroy();
@@ -232,8 +237,18 @@ var app = app || {};
         }
         var now = Date.now();
         dt = (now - lastTime) / 1000.0;
-        // entities[0]._enemies = entities[0]._enemies.filter(purgeDestroyedEnemies);
-        update(dt, lastTime);
+        if (game.gameTimer === 0 && gameState.current === 'menu') {
+            game.gameTimer = now + game.gameMenuDelay;
+
+        }
+        else if (now > game.gameTimer && gameState.current === 'menu') {
+            gameState.play();
+            game.enemyManager.launch();
+            game.gameTimer = 0;
+        }
+        if (gameState.current === 'game') {
+            update(dt, lastTime);
+        }
         render(ctx);
         lastTime = now;
         f.innerHTML = 'Frames / second: ' + fps.getFPS();

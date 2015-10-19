@@ -17,8 +17,9 @@ var app = app || {};
     var MISSILE_SPEED = 300;
     var MISSILE_SPACING = 250;
 
-    function Missile(playerLocation) {
-        app.Entity.call(this, sprites.missile, new app.Point(playerLocation.x + 15, playerLocation.y), 'missile');
+    function Missile(ownerLocation, owner) {
+        app.Entity.call(this, sprites.missile, new app.Point(ownerLocation.x + 15, ownerLocation.y), 'missile');
+        this.owner = owner;
         // this.startingPosition = new app.Point(playerLocation.x + 15, playerLocation.y);
         // console.log(this.startingPosition);
     }
@@ -27,7 +28,12 @@ var app = app || {};
     Missile.prototype.constructor = Missile;
 
     Missile.prototype.update = function(dt) {
-        this.currentPosition.y += dt  * MISSILE_SPEED * -1;
+        if (this.owner === 'player') {
+            this.currentPosition.y += dt * MISSILE_SPEED * -1;
+        }
+        else {
+            this.currentPosition.y -= dt * MISSILE_SPEED;
+        }
     };
 
     // Missile.prototype.render = function(ctx) {

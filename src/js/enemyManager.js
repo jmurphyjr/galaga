@@ -231,16 +231,16 @@ var app = app || {};
                 this._enemies.push(enemy);
             }
         }
-        var ul = game._root.document.createElement('ul');
+        var ul = game.root.document.createElement('ul');
         ul.setAttribute('id', 'list');
         this._enemies.forEach(function addTestData(e) {
-            var li = game._root.document.createElement('li');
+            var li = game.root.document.createElement('li');
             li.setAttribute('id', e.__objId);
-            li.appendChild(game._root.document.createTextNode('x: ' + e.currentPosition.x.toFixed(1) + ' y: ' + e.currentPosition.y.toFixed(1)));
+            li.appendChild(game.root.document.createTextNode('x: ' + e.currentPosition.x.toFixed(1) + ' y: ' + e.currentPosition.y.toFixed(1)));
             ul.appendChild(li);
 
         });
-        // game._root.document.getElementById('enemyInfo').appendChild(ul);
+        // game.root.document.getElementById('enemyInfo').appendChild(ul);
     };
 
     /**
@@ -278,7 +278,8 @@ var app = app || {};
     EnemyManager.prototype.update = function (dt, lastTime) {
         var alive = this._enemies.filter(this.isAlive);
         if (alive.length === 0) {
-            this.reset();
+            // this.reset();
+            gameState.game();
         }
         if (this.current === 'group1') {
             // Launch enemies not onscreen already.
@@ -350,11 +351,30 @@ var app = app || {};
             this.brigadeCurrentPoint.x += xmove;
         }
         else if (this.current === 'pulse') {
-            console.log('in the pulse state');
+            // Enemies will move out from the center of the screen, they will begin
+            // to return when
+            if (lastTime > this.brigadePulseTimer) {
+
+                if (this.brigadePulseDirection === 'in') {
+                    this.brigadePulseDirection = 'out';
+                }
+                else {
+                    this.brigadePulseDirection = 'in';
+                }
+                this.brigadePulseTimer = lastTime + this.brigadePulseDelay;
+            }
+
+            this._enemies.forEach(function setEnemyPulseDirection(entity) {
+                entity.state = 'PULSE';
+                entity.pulseDirection = this.brigadePulseDirection;
+                entity.update(dt, lastTime);
+                // game.root.document.getElementById(entity.__objId).innerHTML = 'Column: ' + entity.column + ' x: ' + entity.currentPosition.x.toFixed(1) + ' y: ' + entity.currentPosition.y.toFixed(1);;
+
+            });
         }
         this._enemies.forEach(function updateEnemyBegin(entity) {
             entity.update(dt, lastTime);
-            // game._root.document.getElementById(entity.__objId).innerHTML = 'Column: ' + entity.column + ' x: ' + entity.currentPosition.x.toFixed(1) + ' y: ' + entity.currentPosition.y.toFixed(1);;
+            // game.root.document.getElementById(entity.__objId).innerHTML = 'Column: ' + entity.column + ' x: ' + entity.currentPosition.x.toFixed(1) + ' y: ' + entity.currentPosition.y.toFixed(1);;
 
         });
 
@@ -378,7 +398,7 @@ var app = app || {};
         //     this._destroyedEnemies = [];
         //     this.brigadeCurrentPoint = this.brigadeStartingPoint.clone();
         //     this._brigadeSlideDirection = +1;
-        //     game._player.reset();
+        //     game.player.reset();
         // }
         //
         // // Get the dead and alive enemies to reduce the loop iterations going
@@ -398,7 +418,7 @@ var app = app || {};
         // this.setBrigadeWidth();
         //
         // // TODO: Line below is for debugging purposes only.
-        // // game._root.document.getElementById('brigadeInfo').innerHTML = 'Brg Min X: ' + this.brigadeXMin.toFixed(2) + ' Brg Max X: ' + this.brigadeXMax.toFixed(2);
+        // // game.root.document.getElementById('brigadeInfo').innerHTML = 'Brg Min X: ' + this.brigadeXMin.toFixed(2) + ' Brg Max X: ' + this.brigadeXMax.toFixed(2);
         //
         // if (this.brigadeState === 'SLIDE') {
         //     if (this._brigadeSlideDirection === 1 && (this.brigadeXMax) > this.csize.width) {
@@ -434,7 +454,7 @@ var app = app || {};
         //         // entity.state = 'PULSE';
         //         entity.pulseDirection = this.brigadePulseDirection;
         //         entity.update(dt, lastTime);
-        //         // game._root.document.getElementById(entity.__objId).innerHTML = 'Column: ' + entity.column + ' x: ' + entity.currentPosition.x.toFixed(1) + ' y: ' + entity.currentPosition.y.toFixed(1);;
+        //         // game.root.document.getElementById(entity.__objId).innerHTML = 'Column: ' + entity.column + ' x: ' + entity.currentPosition.x.toFixed(1) + ' y: ' + entity.currentPosition.y.toFixed(1);;
         //
         //     });
         // }
@@ -560,10 +580,10 @@ var app = app || {};
         this.brigadeCurrentPoint.copy(this.brigadeStartingPoint);
         console.log(this.brigadeCurrentPoint);
         console.log(this.brigadeStartingPoint);
-        this._enemies.forEach(function(entity) {
-            entity.reset();
-        });
-        this.launch();
+        // this._enemies.forEach(function(entity) {
+        //     entity.reset();
+        // });
+        // this.launch();
 
     };
 
@@ -585,6 +605,7 @@ StateMachine.create({
         { name: 'nextgroup', from: 'group6',        to: 'slide' },
         { name: 'attack',    from: 'slide',         to: 'pulse' },
         { name: 'march',     from: 'pulse',         to: 'slide' },
+        { name: 'pulse',     from: 'slide',         to: 'pulse' },
         { name: 'reset',     from: 'begin',         to: 'levelcomplete' },
         { name: 'reset',     from: 'slide',         to: 'levelcomplete' },
         { name: 'reset',     from: 'pulse',         to: 'levelcomplete' },

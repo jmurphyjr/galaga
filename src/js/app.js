@@ -2,7 +2,7 @@ var app = app || {};
 
 
 gameState = StateMachine.create({
-    initial: 'menu',
+    defer: true,
     events: [
         { name: 'startup', from: 'none', to: 'menu' },
         { name: 'play', from: 'menu', to: 'game' },
@@ -10,11 +10,14 @@ gameState = StateMachine.create({
     ],
 
     callbacks: {
-        onmenu: function (event, from, to, msg) {
-            console.log('display startup screen');
+        onstartup: function (event, from, to, msg) {
+            game.init(msg);
         },
         ongame: function (event, from, to, msg) {
-            game.init(msg);
+            console.log(event);
+        },
+        onenterstate: function(event, from, to) {
+            console.log('gameState transitioned from: ' + from + ' to: ' + to + ' because of event: ' + event);
         }
     }
 });
@@ -34,7 +37,8 @@ var loadEntities = function () {
     game = new app.Game();
     // game.setCanvasBackground('images/space.png');
     // game.init(this);
-    gameState.play(this);
+    gameState.startup(this);
+    // gameState.play(this);
 
 };
 

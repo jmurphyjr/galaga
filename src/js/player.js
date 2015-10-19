@@ -101,7 +101,7 @@ var app = app || {};
         }
         if (this.keys[32]) {
             if (lastTime > this.fireTimer) {
-                this.missiles.push(new app.Missile(this.currentPosition));
+                this.missiles.push(new app.Missile(this.currentPosition, 'player'));
                 this.fireTimer = lastTime + this.fireSpacing;
             }
         }

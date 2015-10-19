@@ -55,14 +55,14 @@ var app = app || {};
          * @property root
          * @type Object
          */
-        this._root = null;
+        this.root = null;
 
         /**
          * The engine that will animate the game objects.
          * @property _engine
          * @type Engine
          */
-        this._engine = null;
+        this.engine = null;
 
         /**
          * The maximum number of ACTIVE players on screen
@@ -78,7 +78,7 @@ var app = app || {};
          * @type Array
          *
          */
-        this._player = [];
+        this.player = [];
 
         /**
          * The enemyManager object
@@ -114,38 +114,50 @@ var app = app || {};
         this.maxColumns = this.canvasSize.width / this.cellSize;
         console.log('Max Rows: ' + this.maxRows + ' Columns: ' + this.maxColumns);
 
+        this.gameTimer = 0;
+        this.gameMenuDelay = 5000;
     }
 
     Game.prototype.init = function (global) {
 
-        this._root = global;
-        this._engine = new app.Engine(this._root);
+        this.root = global;
+        this.engine = new app.Engine(this.root);
 
         this.addPlayer();
         this.enemyManager = new app.EnemyManager();
         // this.enemyManager.createEnemies();
         this.enemyManager.start();
 
-        this._engine.addEntity(this.enemyManager);
+        this.engine.addEntity(this.enemyManager);
 
         this.setCanvasBackground('images/space.png');
-        this._engine.init();
+        this.engine.init();
     };
 
     Game.prototype.setCanvasBackground = function (bg) {
-        this._engine.setSpriteImage(bg);
+        this.engine.setSpriteImage(bg);
     };
 
     Game.prototype.addPlayer = function () {
         var canvasSize = this.getCanvasSize();
         var pStartPos = new app.Point(canvasSize.width / 2, canvasSize.height * 0.85);
-        this._player = new app.Player(pStartPos, 'white');
-        this._player.init(this._root);
-        this._engine.addPlayer(this._player);
+        this.player = new app.Player(pStartPos, 'white');
+        this.player.init(this.root);
+        this.engine.addPlayer(this.player);
     };
 
     Game.prototype.getCanvasSize = function() {
         return this.canvasSize;
+    };
+
+    Game.prototype.reset = function() {
+        this.enemyManager.forEach(function(e) {
+            e.reset();
+        })
+    };
+
+    Game.prototype.showStartScreen = function() {
+
     };
 
     app.Game = Game;
