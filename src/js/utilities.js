@@ -137,7 +137,7 @@ var calculateBezierCurvePoints = function() {
         savedArguments = [];
     }
     var arcLength = poly_simplify(points, 0.5);
-    console.log(arcLength);
+    // console.log(arcLength);
     return points;
 };
 
@@ -229,7 +229,7 @@ var calculateControlPoints = function(type, direction) {
     else if (arguments.length === 4) {
         startPoint = arguments[2];
         endPoint = arguments[3];
-        console.log('End Point = ' + endPoint.toString());
+        // console.log('End Point = ' + endPoint.toString());
     }
 
     if (type === 'triangle' && direction === 'cw') {

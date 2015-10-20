@@ -9,59 +9,12 @@ var app = app || {};
         this.brigadeState = 'OFF';
 
         this._game = game instanceof app.Game ? game : new app.Game();
-        /**
-         * The maximum number of green enemies active in the game. During fly-in there are 10 green enemies
-         * however only 4 of the green enemies are left in the brigade.
-         *
-         * @property greenEnemies
-         * @type Number
-         * @default 10
-         */
-        // this.maxGreen = 10;
 
         this.greenStartRow = 3;
-
-        // this.greenStartCol = 7;
-
-        // this.greenTotalRows = 1;
-
-        /**
-         * The maximum number of blue enemies active in the game.
-         * @property blueEnemies
-         * @type {Number}
-         * @default 20
-         */
-        // this.maxBlue = 20;
-        /**
-         * The maximum number of yellow enemies active in the game.
-         * @property yellowEnemies
-         * @type Number
-         * @default 20
-         */
-        // this.maxYellow = 20;
-        /**
-         * The number of times an enemy needs to be hit in order to be destroyed.
-         *   - greenEnemies require 2 hits to be destroyed
-         *          * After first hit, greenEnemies become blue Enemies
-         *   - All other enemies require only one hit to be destroyed.
-         *
-         * @property defaultHealth
-         * @type {number}
-         * @default 1
-         */
-        // this.defaultHealth = 1;
-
-        // this.brigadeXMin = 1000;
-
-        // this.brigadeXMax = 0;
-
-        // this._brigadeMaxWidth = 385;
 
         this.brigadeStartRow = 2;
 
         this.brigadeStartColumn = 2;
-
-        // this._brigadePulseStart = true;
 
         this.brigadePulseTimer = 0;
 
@@ -117,17 +70,13 @@ var app = app || {};
          */
         this._columnOffset = 30;
         /**
-         * @property _enemies
-         * @private
+         * @property enemies
          * @type {Array}
          */
-        this._enemies = [];
+        this.enemies = [];
         this._destroyedEnemies = [];
 
         this.csize = this._game.getCanvasSize();
-
-        this.xMove = 0;
-        this.yMove = 0;
 
         // The following variables will be used for bringing the enemies onto the screen.
         this.group = [];
@@ -141,7 +90,7 @@ var app = app || {};
         this.groupElementCounter = 0;
         this.groupLength = 0;
         this.groupLaunchTimer = 0;
-        this.groupLaunchDelay = 5000;
+        this.groupLaunchDelay = 3000;
 
         this.groupEnemyTimer = 0;
         this.groupEnemyDelay = 100;
@@ -172,7 +121,7 @@ var app = app || {};
             // All GreenEnemies are in Group 3, they need to be added to the array in all even locations.
             enemy.group = 3;
             this.group[3][g3Location] = enemy;
-            this._enemies.push(enemy);
+            this.enemies.push(enemy);
             g3Location += 2;
         }
 
@@ -200,7 +149,7 @@ var app = app || {};
                     this.group[4][g4Location] = enemy;
                     g4Location += 1;
                 }
-                this._enemies.push(enemy);
+                this.enemies.push(enemy);
             }
         }
 
@@ -228,12 +177,12 @@ var app = app || {};
                     this.group[6][g6Location] = enemy;
                     g6Location += 1;
                 }
-                this._enemies.push(enemy);
+                this.enemies.push(enemy);
             }
         }
         var ul = game.root.document.createElement('ul');
         ul.setAttribute('id', 'list');
-        this._enemies.forEach(function addTestData(e) {
+        this.enemies.forEach(function addTestData(e) {
             var li = game.root.document.createElement('li');
             li.setAttribute('id', e.__objId);
             li.appendChild(game.root.document.createTextNode('x: ' + e.currentPosition.x.toFixed(1) + ' y: ' + e.currentPosition.y.toFixed(1)));
@@ -276,26 +225,19 @@ var app = app || {};
      * @param lastTime
      */
     EnemyManager.prototype.update = function (dt, lastTime) {
-        var alive = this._enemies.filter(this.isAlive);
+        var alive = this.enemies.filter(this.isAlive);
         if (alive.length === 0) {
             // this.reset();
-            gameState.game();
+            // this.reset();
+            gameState.reset();
         }
         if (this.current === 'group1') {
-            // Launch enemies not onscreen already.
-            // console.log('I will begin launching the enemies onto the screen');
-
-            // Expect groupCounter === 1 and groupElementCounter === 0;
-            // if lastTime is greater than launchTimer
-            //      execute start on enemy in groupCounter
-            // else
-            //      do nothing this iteration
             if (lastTime > this.groupEnemyTimer) {
                 if (this.groupElementCounter === this.groupLength) {
 
                     // if (lastTime > this.groupLaunchTimer) {
                     // Check that all group1 elements are home before calling next group.
-                    if (this.groupHome(this.group[1])) {
+                    if (this.groupHome(1)) {
                         this.nextgroup();
                         this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
                         return;
@@ -315,22 +257,81 @@ var app = app || {};
             }
 
         }
-        else if (this.current === 'group3' || this.current === 'group4' || this.current === 'group5' || this.current === 'group6') {
-            if (lastTime > this.groupLaunchTimer) {
-                if (lastTime > this.groupEnemyTimer) {
-                    if (this.groupElementCounter === this.groupLength) {
-                        if (this.groupHome(this.groupCounter)) {
+        else if (this.current === 'group3') {
+
+            if (lastTime > this.groupEnemyTimer) {
+                if (this.groupElementCounter === this.groupLength) {
+                    if (this.groupHome(3)) {
                         this.nextgroup();
                         this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
                         return;
-                        }
                     }
+                }
+                else {
                     this.group[this.groupCounter][this.groupElementCounter].start();
                     this.groupEnemyTimer = lastTime + this.groupEnemyDelay;
                     this.groupElementCounter++;
+                    this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
                 }
-
             }
+
+        }
+        else if (this.current === 'group4') {
+
+            if (lastTime > this.groupEnemyTimer) {
+                if (this.groupElementCounter === this.groupLength) {
+                    if (this.groupHome(4)) {
+                        this.nextgroup();
+                        this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
+                        return;
+                    }
+                }
+                else {
+                    this.group[this.groupCounter][this.groupElementCounter].start();
+                    this.groupEnemyTimer = lastTime + this.groupEnemyDelay;
+                    this.groupElementCounter++;
+                    this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
+                }
+            }
+
+        }
+        else if (this.current === 'group5') {
+
+            if (lastTime > this.groupEnemyTimer) {
+                if (this.groupElementCounter === this.groupLength) {
+                    if (this.groupHome(5)) {
+                        this.nextgroup();
+                        this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
+                        return;
+                    }
+                }
+                else {
+                    this.group[this.groupCounter][this.groupElementCounter].start();
+                    this.groupEnemyTimer = lastTime + this.groupEnemyDelay;
+                    this.groupElementCounter++;
+                    this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
+                }
+            }
+
+        }
+        else if (this.current === 'group6') {
+
+            if (lastTime > this.groupEnemyTimer) {
+                if (this.groupElementCounter === this.groupLength) {
+                    if (this.groupHome(6)) {
+                        this.nextgroup();
+                        this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
+                        return;
+                    }
+                }
+                else {
+                    this.group[this.groupCounter][this.groupElementCounter].start();
+                    this.groupEnemyTimer = lastTime + this.groupEnemyDelay;
+                    this.groupElementCounter++;
+                    this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
+                }
+            }
+
         }
         else if (this.current === 'slide') {
             this.setBrigadeWidth();
@@ -344,7 +345,7 @@ var app = app || {};
             xmove = dt * 10 * this._brigadeSlideDirection;
             var bCurrent = this.brigadeCurrentPoint;
 
-            this._enemies.forEach(function emUpdateEnemies(entity) {
+            this.enemies.forEach(function emUpdateEnemies(entity) {
                 entity.state = 'SLIDE';
                 entity.update(dt, lastTime, bCurrent);
             });
@@ -364,7 +365,7 @@ var app = app || {};
                 this.brigadePulseTimer = lastTime + this.brigadePulseDelay;
             }
 
-            this._enemies.forEach(function setEnemyPulseDirection(entity) {
+            this.enemies.forEach(function setEnemyPulseDirection(entity) {
                 entity.state = 'PULSE';
                 entity.pulseDirection = this.brigadePulseDirection;
                 entity.update(dt, lastTime);
@@ -372,111 +373,45 @@ var app = app || {};
 
             });
         }
-        this._enemies.forEach(function updateEnemyBegin(entity) {
+        this.enemies.forEach(function updateEnemyBegin(entity) {
             entity.update(dt, lastTime);
             // game.root.document.getElementById(entity.__objId).innerHTML = 'Column: ' + entity.column + ' x: ' + entity.currentPosition.x.toFixed(1) + ' y: ' + entity.currentPosition.y.toFixed(1);;
 
         });
 
-        // var xmove;
-        // var ymove;
-        //
-        // for (var i = this._enemies.length - 1; i >= 0; i--) {
-        //     if (this._enemies[i].deleteMe) {
-        //         var removedItem = null;
-        //         this._enemies[i].reset();
-        //         removedItem = this._enemies.splice(i, 1);
-        //         this._destroyedEnemies.push(removedItem[0]);
-        //     }
-        // }
-        // //
-        // // Reset the enemies array if it is empty
-        // // TODO: Need to create a reset function to advance to next stage.
-        // if (this._enemies.length === 0) {
-        //     this.reset();
-        //     this._enemies = this._destroyedEnemies;
-        //     this._destroyedEnemies = [];
-        //     this.brigadeCurrentPoint = this.brigadeStartingPoint.clone();
-        //     this._brigadeSlideDirection = +1;
-        //     game.player.reset();
-        // }
-        //
-        // // Get the dead and alive enemies to reduce the loop iterations going
-        // // forward.
-        // var dead = this._enemies.filter(this.isDestroyed);
-        // var alive = this._enemies.filter(this.isAlive);
-        //
-        // if (dead.length > 0) {
-        //     dead.forEach(function (entity) {
-        //         entity.setSprite('explosion');
-        //         // console.log('Frame Counter: ' + entity.frameCounter);
-        //         entity.update(dt, lastTime);
-        //         // console.log('Entity id: ' + entity.__objId + '  frameCounter: ' + entity.frameCounter);
-        //     });
-        // }
-        //
-        // this.setBrigadeWidth();
-        //
-        // // TODO: Line below is for debugging purposes only.
-        // // game.root.document.getElementById('brigadeInfo').innerHTML = 'Brg Min X: ' + this.brigadeXMin.toFixed(2) + ' Brg Max X: ' + this.brigadeXMax.toFixed(2);
-        //
-        // if (this.brigadeState === 'SLIDE') {
-        //     if (this._brigadeSlideDirection === 1 && (this.brigadeXMax) > this.csize.width) {
-        //         this._brigadeSlideDirection = -1;
-        //     }
-        //     else if (this._brigadeSlideDirection === -1 && (this.brigadeXMin < 0)) {
-        //         this._brigadeSlideDirection = +1;
-        //     }
-        //     xmove = dt * 10 * this._brigadeSlideDirection;
-        //     var bCurrent = this.brigadeCurrentPoint;
-        //
-        //     alive.forEach(function emUpdateEnemies(entity) {
-        //         entity.state = 'SLIDE';
-        //         entity.update(dt, lastTime, bCurrent, xmove, ymove);
-        //     });
-        //     this.brigadeCurrentPoint.x += xmove;
-        // }
-        // else if (this.brigadeState === 'PULSE') {
-        //     // Enemies will move out from the center of the screen, they will begin
-        //     // to return when
-        //     if (lastTime > this.brigadePulseTimer) {
-        //
-        //         if (this.brigadePulseDirection === 'in') {
-        //             this.brigadePulseDirection = 'out';
-        //         }
-        //         else {
-        //             this.brigadePulseDirection = 'in';
-        //         }
-        //         this.brigadePulseTimer = lastTime + this.brigadePulseDelay;
-        //     }
-        //
-        //     this._enemies.forEach(function setEnemyPulseDirection(entity) {
-        //         // entity.state = 'PULSE';
-        //         entity.pulseDirection = this.brigadePulseDirection;
-        //         entity.update(dt, lastTime);
-        //         // game.root.document.getElementById(entity.__objId).innerHTML = 'Column: ' + entity.column + ' x: ' + entity.currentPosition.x.toFixed(1) + ' y: ' + entity.currentPosition.y.toFixed(1);;
-        //
-        //     });
-        // }
     };
 
     EnemyManager.prototype.render = function (ctx) {
-        this._enemies.forEach(function renderEachEntity(entity) {
+        this.enemies.forEach(function renderEachEntity(entity) {
             entity.render(ctx);
         });
     };
 
-    EnemyManager.prototype.groupHome = function(g) {
+    EnemyManager.prototype.groupHome = function(g, callback) {
         var home = true;
+        var i = 0;
 
-        for (var i = 0; i < g.length; i++) {
-            if (g[i].current !== 'removed') {
-                if (!g[i].atHome()) {
-                    return false;
+        if (callback) {
+            for (i = 0; i < this.group[g].length; i++) {
+                console.log('var i in groupHome = ' + i);
+                if (this.group[g][i].current !== 'removed') {
+                    while(!this.group[g][i].atHome()) {
+
+                    }
                 }
             }
+            callback();
         }
-        return home;
+        else {
+            for (i = 0; i < this.group[g].length; i++) {
+                if (this.group[g][i].current !== 'removed') {
+                    if (!this.group[g][i].atHome()) {
+                        return false;
+                    }
+                }
+            }
+            return home;
+        }
     };
 
     EnemyManager.prototype.setBrigadeWidth = function() {
@@ -484,8 +419,8 @@ var app = app || {};
         var xMin = 1000;
         var xMax = 0;
 
-        for (var e = 0; e < this._enemies.length; e++) {
-            cEnemy = this._enemies[e];
+        for (var e = 0; e < this.enemies.length; e++) {
+            cEnemy = this.enemies[e];
             if (cEnemy.current === 'brigade') {
                 if (cEnemy.currentPosition.x < xMin) {
                     this.brigadeXMin = cEnemy.currentPosition.x;
@@ -519,7 +454,7 @@ var app = app || {};
     EnemyManager.prototype.onlaunch = function(event, from, to) {
         // Brigade state starts with SLIDE. As the enemies enter the scene and join the brigade
         // they will slide back and forth until all enemies are on screen.
-        this.brigadeState = 'SLIDE';
+        this.brigadeState = 'PULSE';
         // Start with Group 1, set the groupLength attribute to the length of group 1.
         this.groupLength = this.group[1].length;
         this.groupElementCounter = 0;
@@ -578,14 +513,50 @@ var app = app || {};
      */
     EnemyManager.prototype.onreset = function(event, from, to) {
         this.brigadeCurrentPoint.copy(this.brigadeStartingPoint);
-        console.log(this.brigadeCurrentPoint);
-        console.log(this.brigadeStartingPoint);
-        // this._enemies.forEach(function(entity) {
-        //     entity.reset();
-        // });
-        // this.launch();
-
     };
+
+    EnemyManager.prototype.onleavegroup1 = function() {
+        var self = this;
+        this.groupHome(1, function() {
+            self.transition();
+            console.log('transition from group1 complete');
+        });
+        return StateMachine.ASYNC;
+    };
+
+    EnemyManager.prototype.onleavegroup3 = function() {
+        var self = this;
+        this.groupHome(3, function() {
+            self.transition();
+            console.log('transition from group3 complete');
+        });
+        return StateMachine.ASYNC;
+    };
+
+    EnemyManager.prototype.onleavegroup4 = function() {
+        var self = this;
+        this.groupHome(4, function() {
+            self.transition();
+        });
+        return StateMachine.ASYNC;
+    };
+
+    EnemyManager.prototype.onleavegroup5 = function() {
+        var self = this;
+        this.groupHome(5, function() {
+            self.transition();
+        });
+        return StateMachine.ASYNC;
+    };
+
+    EnemyManager.prototype.onleavegroup6 = function() {
+        var self = this;
+        this.groupHome(6, function() {
+            self.transition();
+        });
+        return StateMachine.ASYNC;
+    };
+
 
     app.EnemyManager = EnemyManager;
 
@@ -602,7 +573,7 @@ StateMachine.create({
         { name: 'nextgroup', from: 'group3',        to: 'group4' },
         { name: 'nextgroup', from: 'group4',        to: 'group5' },
         { name: 'nextgroup', from: 'group5',        to: 'group6' },
-        { name: 'nextgroup', from: 'group6',        to: 'slide' },
+        { name: 'nextgroup', from: 'group6',        to: 'pulse' },
         { name: 'attack',    from: 'slide',         to: 'pulse' },
         { name: 'march',     from: 'pulse',         to: 'slide' },
         { name: 'pulse',     from: 'slide',         to: 'pulse' },

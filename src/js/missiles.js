@@ -20,8 +20,6 @@ var app = app || {};
     function Missile(ownerLocation, owner) {
         app.Entity.call(this, sprites.missile, new app.Point(ownerLocation.x + 15, ownerLocation.y), 'missile');
         this.owner = owner;
-        // this.startingPosition = new app.Point(playerLocation.x + 15, playerLocation.y);
-        // console.log(this.startingPosition);
     }
 
     Missile.prototype = Object.create(app.Entity.prototype);

@@ -252,8 +252,13 @@ var app = app || {};
         this.destroyed = false;
         this.sprite = this.sprites[this.type];
         this.frameCounter = 0;
-        this.state = 'SLIDE';
-        // this.currentPosition = this.startingPosition;
+        this.enterIndex = 0;
+        // this.state = 'SLIDE';
+        this.currentPosition.x = -100;
+        this.currentPosition.y = -100;
+        if (this.current !== 'removed') {
+            this.leave();
+        }
 
 
     };
@@ -399,14 +404,14 @@ var app = app || {};
                         }
                         this._pulseEnemy(this);
 
-                        xMove = dt * 2 * Math.abs((7.5 - this.column)) * this.direction;
+                        xMove = dt * 20 * Math.abs((7.5 - this.column)) * this.direction;
 
                         this.lastPosition = this.currentPosition;
                         this.currentPosition.x += xMove;
 
                         if (this.type === 'green' || this.type === 'blue') {
                             // This guys do not move in the vertical.
-                            return;
+                            // return;
                         }
                         else {
                             yMove = dt * 2 * Math.abs(game.enemyManager.brigadeStartRow - this.row + 1) * this.vertDirection;
@@ -459,90 +464,6 @@ var app = app || {};
                 // no missiles are fired from this state.
                 console.log(this.__objId + ' is flying');
             }
-
-            // if (this.state === 'PULSE') {
-            //
-            //     var colRatio = (this.column - game.enemyManager.brigadeStartColumn) / 5;
-            //     if (colRatio <= 1) {
-            //         this.pulseSide = 'left';
-            //     }
-            //     else if (colRatio > 1) {
-            //         this.pulseSide = 'right';
-            //     }
-            //     this._pulseEnemy(this);
-            //
-            //     var xMove = dt * 2 * Math.abs((7.5 - this.column)) * this.direction;
-            //
-            //     this.lastPosition = this.currentPosition;
-            //     this.currentPosition.x += xMove;
-            //
-            //     if (this.type === 'green' || this.type === 'blue') {
-            //         // This guys do not move in the vertical.
-            //     }
-            //     else {
-            //         var yMove = dt * 2 * Math.abs(game.enemyManager.brigadeStartRow - this.row + 1) * this.vertDirection;
-            //         this.currentPosition.y += yMove;
-            //     }
-            //
-            // }
-            // else if (this.state === 'SLIDE') {
-            //     var xMove = refPoint.x + (this.column - game.enemyManager.brigadeStartColumn) * game.cellSize;
-            //     var yMove = refPoint.y + (this.row - game.enemyManager.brigadeStartRow) * game.cellSize;
-            //     this.currentPosition.x = xMove;
-            //     this.currentPosition.y = yMove;
-            // }
-            // else if (this.state === 'ATTACK') {
-            //     // attack causes the enemy to rise up, rotate either right or left depending
-            //     // column, and continue to attack.
-            //     if (this.attackStart) {
-            //         var points = calculateControlPoints('triangle', this.currentPosition);
-            //         this.attackStart = false;
-            //         // console.log(states.attack);
-            //         this.attackPoints.pushArrayMembers(calculateBezierCurvePoints(points[0], points[1], points[2], points[3]));
-            //         this.attackAngles.pushArrayMembers(calculateBezierCurveAngles(points[0], points[1], points[2], points[3]));
-            //     }
-            //     else {
-            //         if (this.attackPoints.length !== 0) {
-            //             if (lastTime > this.attackTimer) {
-            //                 this.currentPosition.x = this.attackPoints[this.attackIndex].x;
-            //                 this.currentPosition.y = this.attackPoints[this.attackIndex].y;
-            //                 this.attackIndex++;
-            //                 if (this.attackIndex === this.attackPoints.length) {
-            //                     this.attackPoints = [];
-            //                     this.attackAngles = [];
-            //                     this.attackIndex = 0;
-            //                     this.state = 'SLIDE';
-            //                 }
-            //                 this.attackTimer = lastTime + this.attackMovementSpacing;
-            //             }
-            //         }
-            //     }
-            // }
-            // else if (this.state === 'CIRCLE') {
-            //     if (this.attackStart) {
-            //         this.attackStart = false;
-            //         var loop = calculateLoopPoints(this.currentPosition);
-            //         this.attackPoints.pushArrayMembers(loop[0]);
-            //         this.attackAngles.pushArrayMembers(loop[1]);
-            //         this.currentPosition.x = this.attackPoints[0].x;
-            //         this.currentPosition.y = this.attackPoints[0].y;
-            //         this.attackIndex++;
-            //     }
-            //     else if (this.attackPoints.length !== 0) {
-            //         if (lastTime > this.attackTimer) {
-            //             this.currentPosition.x = this.attackPoints[this.attackIndex].x;
-            //             this.currentPosition.y = this.attackPoints[this.attackIndex].y;
-            //             this.attackIndex++;
-            //             if (this.attackIndex === this.attackPoints.length) {
-            //                 this.attackPoints = [];
-            //                 this.attackAngles = [];
-            //                 this.attackIndex = 0;
-            //                 this.state = 'SLIDE';
-            //             }
-            //             this.attackTimer = 0; // lastTime + this.attackMovementSpacing;
-            //         }
-            //     }
-            // }
         }
     };
 
@@ -566,15 +487,6 @@ var app = app || {};
             ctx.setTransform(1, 0, 0, 1, 0, 0);
 
         }
-        // else if (this.state === 'CIRCLE' && !this.attackStart) {
-        //     ctx.translate(this.currentPosition.x, this.currentPosition.y);
-        //     ctx.rotate(this.attackAngles[this.attackIndex]);
-        //     ctx.drawImage(Resources.get(this.sprite.image), -((this.sprite.size.width * this.sprite.scale) / 2), -((this.sprite.size.height * this.sprite.scale) / 2), this.sprite.size.width * this.sprite.scale, this.sprite.size.height * this.sprite.scale);
-        //     ctx.setTransform(1, 0, 0, 1, 0, 0);
-        // }
-        // else {
-        //     app.Entity.prototype.render.call(this, ctx);
-        // }
         else if (this.current === 'removed') {
             return;
         }
@@ -764,12 +676,8 @@ var app = app || {};
      * @param to
      */
     Enemy.prototype.onleave = function(event, from, to) {
-        // this.deleteMe = true;
-        // this.destroyed = true;
         this.currentPosition.x = -100;
         this.currentPosition.y = -100;
-        // this.reset();
-        // this.enterIndex = 0;
         console.log('onleave event: ' + event + ' from: ' + from + ' to: ' + to);
     };
 

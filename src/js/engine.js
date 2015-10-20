@@ -202,18 +202,18 @@ var app = app || {};
     function collisionDetection(e) {
         if (player.missiles.length > 0) {
             for (var i = 0; i < player.missiles.length; i++) {
-                for (var t = 0; t < e._enemies.length; t++) {
-                    if (player.missiles[i].currentPosition.x < e._enemies[t].currentPosition.x + e._enemies[t].rect.width &&
-                        player.missiles[i].currentPosition.x + player.missiles[i].rect.width > e._enemies[t].currentPosition.x &&
-                        player.missiles[i].currentPosition.y < e._enemies[t].currentPosition.y + e._enemies[t].rect.height - 10 &&
-                        player.missiles[i].currentPosition.y + player.missiles[i].rect.height > e._enemies[t].currentPosition.y) {
+                for (var t = 0; t < e.enemies.length; t++) {
+                    if (player.missiles[i].currentPosition.x < e.enemies[t].currentPosition.x + e.enemies[t].rect.width &&
+                        player.missiles[i].currentPosition.x + player.missiles[i].rect.width > e.enemies[t].currentPosition.x &&
+                        player.missiles[i].currentPosition.y < e.enemies[t].currentPosition.y + e.enemies[t].rect.height - 10 &&
+                        player.missiles[i].currentPosition.y + player.missiles[i].rect.height > e.enemies[t].currentPosition.y) {
                         // Only destroy the first entity the missile collides with and destroy the missile.
-                        // e._enemies[t].setDestroy();
-                        if (e._enemies[t].isAlive()) {
-                            e._enemies[t].killed();
+                        // e.enemies[t].setDestroy();
+                        if (e.enemies[t].isAlive()) {
+                            e.enemies[t].killed();
                         }
                         player.missiles[i].setDestroy();
-                        player.score += e._enemies[t].getPointValue();
+                        player.score += e.enemies[t].getPointValue();
                         return true;
                     }
                 }

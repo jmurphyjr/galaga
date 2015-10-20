@@ -82,12 +82,15 @@ var app = app || {};
     };
 
     GreenEnemy.prototype.reset = function () {
-        this.destroyed = false;
-        this.deleteMe = false;
-        this.sprite = this.sprites[this.type];
         this.HealthCounter = 2;
         this.frameCounter = 0;
-        this.state = 'SLIDE';
+        this.deleteMe = false;
+        this.destroyed = false;
+        this.sprite = this.sprites[this.type];
+        this.enterIndex = 0;
+        this.currentPosition.x = -100;
+        this.currentPosition.y = -100;
+
     };
     /**
      * The 'destroy' state will cause the enemy to 'explode'.
