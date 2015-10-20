@@ -6,7 +6,7 @@ gameState = StateMachine.create({
     events: [
         { name: 'startup', from: 'none', to: 'menu' },
         { name: 'play', from: 'menu', to: 'start' },
-        { name: 'activate', from: 'start', to: 'playing'},
+        { name: 'activate', from: 'start', to: 'playing' },
         { name: 'reset', from: 'playing', to: 'menu' }
     ],
 
@@ -76,16 +76,20 @@ Resources.onReady(loadEntities);
 function handleInput(key) {
     switch (key) {
         case 'startGame':
+        {
             if (gameState.current === 'menu') {
                 gameState.play();
             }
             break;
+        }
         case 'space':
+        {
             if (gameState.current === 'playing') {
                 // while in 'playing' state space bar is firing a player missile
                 game.fireMissile('player');
             }
             break;
+        }
     }
 }
 

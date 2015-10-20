@@ -242,10 +242,6 @@ var app = app || {};
                         this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
                         return;
                     }
-                    else {
-                        // console.log('not home');
-                    }
-                    // }
                 }
                 else {
                     this.group[this.groupCounter][this.groupElementCounter].start();
@@ -395,7 +391,7 @@ var app = app || {};
             for (i = 0; i < this.group[g].length; i++) {
                 console.log('var i in groupHome = ' + i);
                 if (this.group[g][i].current !== 'removed') {
-                    while(!this.group[g][i].atHome()) {
+                    while (!this.group[g][i].atHome()) {
 
                     }
                 }

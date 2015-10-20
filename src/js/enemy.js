@@ -297,7 +297,6 @@ var app = app || {};
      */
     Enemy.prototype.update = function (dt, lastTime) {
 
-        //if (this.current === 'destroyed') {
         if (this.destroyed) {
             this.sprite = this.sprites.explosion;
             if (this.frameCounter === null) {
@@ -409,11 +408,7 @@ var app = app || {};
                         this.lastPosition = this.currentPosition;
                         this.currentPosition.x += xMove;
 
-                        if (this.type === 'green' || this.type === 'blue') {
-                            // This guys do not move in the vertical.
-                            // return;
-                        }
-                        else {
+                        if (this.type !== 'green' || this.type !== 'blue') {
                             yMove = dt * 2 * Math.abs(game.enemyManager.brigadeStartRow - this.row + 1) * this.vertDirection;
                             this.currentPosition.y += yMove;
                         }
@@ -553,7 +548,7 @@ var app = app || {};
         var xHome = this._em.brigadeCurrentPoint.x + (this.column - game.enemyManager.brigadeStartColumn) * game.cellSize;
         var yHome = this._em.brigadeCurrentPoint.y + (this.row - game.enemyManager.brigadeStartRow) * game.cellSize;
 
-        if ((xHome < (this.currentPosition.x + 1) && xHome > (this.currentPosition.x - 1)) && (yHome < (this.currentPosition.y + 1) && yHome > (this.currentPosition.y -1 ))) {
+        if ((xHome < (this.currentPosition.x + 1) && xHome > (this.currentPosition.x - 1)) && (yHome < (this.currentPosition.y + 1) && yHome > (this.currentPosition.y - 1))) {
             atHome = true;
         }
 

@@ -99,12 +99,12 @@ var app = app || {};
             xmove = dt * 100 * 2;
             this.move = true;
         }
-        //if (this.keys[32]) {
-        //    if (lastTime > this.fireTimer) {
-        //        this.missiles.push(new app.Missile(this.currentPosition, 'player'));
-        //        this.fireTimer = lastTime + this.fireSpacing;
-        //    }
-        //}
+        // if (this.keys[32]) {
+        //     if (lastTime > this.fireTimer) {
+        //         this.missiles.push(new app.Missile(this.currentPosition, 'player'));
+        //         this.fireTimer = lastTime + this.fireSpacing;
+        //     }
+        // }
         if (!this.move) {
             return;
         }
