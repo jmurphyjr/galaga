@@ -279,6 +279,12 @@ var app = app || {};
             });
         }
 
+        function addPlayerLives() {
+            for (var i = 0; i < self.player.lives - 1; i++) {
+                ctx.drawImage(Resources.get('images/galaga-white-fighter.png'), ((i * 40) + 25), canvas.height - 50, 138 * 0.23, 145 * 0.23);
+            }
+        }
+
         /**
          * The single render function.
          */
@@ -329,6 +335,13 @@ var app = app || {};
                     });
 
                 }
+                addPlayerLives();
+            }
+            else if (self.current === 'over') {
+                ctx.fillStyle = 'red';
+                ctx.fillText('GAME OVER', canvas.width / 2, canvas.height * 0.30);
+                ctx.fillStyle = 'cyan';
+                ctx.fillText('PRESS \'R\' TO RESTART', canvas.width / 2, canvas.height * 0.50);
             }
         }
 
@@ -350,6 +363,12 @@ var app = app || {};
                     }
                     break;
                 }
+                case 'tryAgain':
+                {
+                    if (self.current === 'over') {
+                        self.tryagain();
+                    }
+                }
             }
         }
 
@@ -364,6 +383,11 @@ var app = app || {};
             if (!running) {
                 return;
             }
+
+            if (self.player.lives === 0 && self.current !== 'over') {
+                self.gameOver();
+            }
+
             var now = Date.now();
             dt = (now - lastTime) / 1000.0;
 
@@ -433,7 +457,8 @@ var app = app || {};
                     38: 'up',
                     39: 'right',
                     40: 'down',
-                    80: 'startGame'
+                    80: 'startGame',
+                    82: 'tryAgain'
                 };
 
                 handleInput(allowedKeys[e.keyCode]);
@@ -482,7 +507,7 @@ var app = app || {};
     };
 
     Game.prototype.onenterstate = function(event, from, to) {
-        // console.log('game.js - onEvent ' + event + ' from: ' + from + ' to: ' + to);
+        console.log('game.js - onEvent ' + event + ' from: ' + from + ' to: ' + to);
     };
 
     Game.prototype.onenterintro = function() {
@@ -502,10 +527,17 @@ var app = app || {};
         this.summaryTimer = Date.now() + 4000;
     };
 
-    Game.prototype.onleaveactive = function() {
-        this.enemyManager.reset(function() {
-            game.transition();
-        });
+    Game.prototype.onleaveactive = function(event, from, to) {
+        if (event === 'levelComplete') {
+            this.enemyManager.reset(function () {
+                game.transition();
+            });
+        }
+        else if (event === 'gameOver') {
+            this.restart(function() {
+                game.transition();
+            });
+        }
         return StateMachine.ASYNC;
     };
 
@@ -526,6 +558,21 @@ var app = app || {};
         this.init(this.root);
     };
 
+    Game.prototype.restart = function(callback) {
+        this.enemyManager.restart();
+        callback();
+    };
+
+    Game.prototype.ongameOver = function() {
+
+    };
+
+    Game.prototype.ontryagain = function() {
+        this.player.lives = 3;
+        this.player.score = 0;
+        this.player.currentPosition = this.player.startingPosition.clone();
+    };
+
     app.Game = Game;
 }());
 
@@ -538,6 +585,8 @@ StateMachine.create({
         { name: 'startStage',     from: 'start',    to: 'activate' },
         { name: 'play',           from: 'activate', to: 'active' },   // There isn't a key to get to this stage, only a delay of 2-3 secs
         { name: 'levelComplete',  from: 'active',   to: 'summary' },  // After completion of stage, transition to summary
-        { name: 'stageIntro',     from: 'summary',  to: 'start' }
+        { name: 'stageIntro',     from: 'summary',  to: 'start' },
+        { name: 'gameOver',       from: 'active',   to: 'over' },
+        { name: 'tryagain',        from: 'over',     to: 'intro' }
     ]
 });

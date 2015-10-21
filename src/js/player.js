@@ -127,6 +127,8 @@ var app = app || {};
         }
     };
 
+    Player.prototype.lives = 3;
+
     /**
      * Reset the player to a known state. Typically this will be executed after all enemies
      * have been destroyed.

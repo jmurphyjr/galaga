@@ -248,9 +248,10 @@ var app = app || {};
         // this.state = 'SLIDE';
         this.currentPosition.x = -100;
         this.currentPosition.y = -100;
-        if (this.current !== 'removed') {
-            this.leave();
-        }
+        // if (this.current !== 'removed') {
+        //     this.leave();
+        // }
+        this.current = 'removed';
     };
 
     Enemy.prototype.setState = function (state) {
@@ -653,6 +654,11 @@ var app = app || {};
         // console.log('onleave event: ' + event + ' from: ' + from + ' to: ' + to);
     };
 
+    Enemy.prototype.onrestart = function() {
+        this.enterIndex = 0;
+        this.reset();
+    };
+
 
     app.Enemy = Enemy;
 })();
@@ -671,7 +677,8 @@ StateMachine.create({
         { name: 'lineup',       from: 'attacking',   to: 'brigade' },
         { name: 'killed',       from: 'attacking',   to: 'destroyed' },
         { name: 'lineup',       from: 'flying',      to: 'brigade' },
-        { name: 'killed',       from: 'flying',      to: 'destroyed' }
+        { name: 'killed',       from: 'flying',      to: 'destroyed' },
+        { name: 'restart',      from: ['destroyed', 'entering', 'brigade', 'attacking', 'flying', 'removed'],           to: 'removed' }
     ]
 });
 

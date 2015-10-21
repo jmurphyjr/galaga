@@ -469,6 +469,12 @@ var app = app || {};
         callback();
     };
 
+    EnemyManager.prototype.onrestart = function() {
+        this.enemies.forEach(function(e) {
+            e.restart();
+        });
+    };
+
     app.EnemyManager = EnemyManager;
 
 }());
@@ -491,6 +497,7 @@ StateMachine.create({
         { name: 'reset',     from: 'begin',         to: 'levelcomplete' },
         { name: 'reset',     from: 'slide',         to: 'levelcomplete' },
         { name: 'reset',     from: 'pulse',         to: 'levelcomplete' },
-        { name: 'launch',    from: 'levelcomplete', to: 'group1' }
+        { name: 'launch',    from: 'levelcomplete', to: 'group1' },
+        { name: 'restart',   from: ['group1', 'group2', 'group3', 'group4', 'group5', 'group6', 'slide', 'pulse', 'begin'],             to: 'levelcomplete' }
     ]
 });
