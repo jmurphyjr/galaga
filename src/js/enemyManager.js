@@ -90,7 +90,8 @@ var app = app || {};
         this.groupElementCounter = 0;
         this.groupLength = 0;
         this.groupLaunchTimer = 0;
-        this.groupLaunchDelay = 3000;
+        this.groupLaunchDelay = 2000;
+        this.doLaunch = true;
 
         this.groupEnemyTimer = 0;
         this.groupEnemyDelay = 100;
@@ -214,6 +215,30 @@ var app = app || {};
         return !value.destroyed;
     };
 
+    EnemyManager.prototype.enemiesLeft = function() {
+        return this.enemies.filter(this.isAlive);
+    };
+
+    EnemyManager.prototype.launchGroup = function(lastTime) {
+        if (lastTime > this.groupEnemyTimer) {
+            if (this.groupElementCounter === this.groupLength) {
+                if (this.groupHome(this.groupCounter)) {
+                    this.nextgroup();
+                    this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
+                    this.doLaunch = true;
+                    return;
+                }
+            }
+            else {
+                this.group[this.groupCounter][this.groupElementCounter].start();
+                this.groupEnemyTimer = lastTime + this.groupEnemyDelay;
+                this.groupElementCounter++;
+                this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
+            }
+        }
+
+    };
+
     /**
      * Update entity to latest position. Position is determined on the
      * current state of the Brigade. This logic controls only the Brigade.
@@ -225,12 +250,6 @@ var app = app || {};
      * @param lastTime
      */
     EnemyManager.prototype.update = function (dt, lastTime) {
-        var alive = this.enemies.filter(this.isAlive);
-        if (alive.length === 0) {
-            // this.reset();
-            // this.reset();
-            gameState.reset();
-        }
         if (this.current === 'group1') {
             if (lastTime > this.groupEnemyTimer) {
                 if (this.groupElementCounter === this.groupLength) {
@@ -240,6 +259,7 @@ var app = app || {};
                     if (this.groupHome(1)) {
                         this.nextgroup();
                         this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
+                        this.doLaunch = true;
                         return;
                     }
                 }
@@ -253,79 +273,15 @@ var app = app || {};
             }
 
         }
-        else if (this.current === 'group3') {
+        else if (this.current === 'group3' || this.current === 'group4' ||
+                 this.current === 'group5' || this.current === 'group6') {
 
-            if (lastTime > this.groupEnemyTimer) {
-                if (this.groupElementCounter === this.groupLength) {
-                    if (this.groupHome(3)) {
-                        this.nextgroup();
-                        this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
-                        return;
-                    }
-                }
-                else {
-                    this.group[this.groupCounter][this.groupElementCounter].start();
-                    this.groupEnemyTimer = lastTime + this.groupEnemyDelay;
-                    this.groupElementCounter++;
-                    this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
-                }
+            if (lastTime > this.groupLaunchTimer && this.doLaunch) {
+                this.launchGroup(lastTime);
+                this.doLaunch = false;
             }
-
-        }
-        else if (this.current === 'group4') {
-
-            if (lastTime > this.groupEnemyTimer) {
-                if (this.groupElementCounter === this.groupLength) {
-                    if (this.groupHome(4)) {
-                        this.nextgroup();
-                        this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
-                        return;
-                    }
-                }
-                else {
-                    this.group[this.groupCounter][this.groupElementCounter].start();
-                    this.groupEnemyTimer = lastTime + this.groupEnemyDelay;
-                    this.groupElementCounter++;
-                    this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
-                }
-            }
-
-        }
-        else if (this.current === 'group5') {
-
-            if (lastTime > this.groupEnemyTimer) {
-                if (this.groupElementCounter === this.groupLength) {
-                    if (this.groupHome(5)) {
-                        this.nextgroup();
-                        this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
-                        return;
-                    }
-                }
-                else {
-                    this.group[this.groupCounter][this.groupElementCounter].start();
-                    this.groupEnemyTimer = lastTime + this.groupEnemyDelay;
-                    this.groupElementCounter++;
-                    this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
-                }
-            }
-
-        }
-        else if (this.current === 'group6') {
-
-            if (lastTime > this.groupEnemyTimer) {
-                if (this.groupElementCounter === this.groupLength) {
-                    if (this.groupHome(6)) {
-                        this.nextgroup();
-                        this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
-                        return;
-                    }
-                }
-                else {
-                    this.group[this.groupCounter][this.groupElementCounter].start();
-                    this.groupEnemyTimer = lastTime + this.groupEnemyDelay;
-                    this.groupElementCounter++;
-                    this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
-                }
+            else if (!this.doLaunch) {
+                this.launchGroup(lastTime);
             }
 
         }
@@ -361,16 +317,16 @@ var app = app || {};
                 this.brigadePulseTimer = lastTime + this.brigadePulseDelay;
             }
 
-            this.enemies.forEach(function setEnemyPulseDirection(entity) {
-                entity.state = 'PULSE';
-                entity.pulseDirection = this.brigadePulseDirection;
-                entity.update(dt, lastTime);
+            this.enemies.forEach(function setEnemyPulseDirection(e) {
+                e.state = 'PULSE';
+                e.pulseDirection = this.brigadePulseDirection;
+                e.update(dt, lastTime);
                 // game.root.document.getElementById(entity.__objId).innerHTML = 'Column: ' + entity.column + ' x: ' + entity.currentPosition.x.toFixed(1) + ' y: ' + entity.currentPosition.y.toFixed(1);;
 
             });
         }
-        this.enemies.forEach(function updateEnemyBegin(entity) {
-            entity.update(dt, lastTime);
+        this.enemies.forEach(function updateEnemyBegin(e) {
+            e.update(dt, lastTime);
             // game.root.document.getElementById(entity.__objId).innerHTML = 'Column: ' + entity.column + ' x: ' + entity.currentPosition.x.toFixed(1) + ' y: ' + entity.currentPosition.y.toFixed(1);;
 
         });
@@ -378,36 +334,23 @@ var app = app || {};
     };
 
     EnemyManager.prototype.render = function (ctx) {
-        this.enemies.forEach(function renderEachEntity(entity) {
-            entity.render(ctx);
+        this.enemies.forEach(function renderEachEntity(e) {
+            e.render(ctx);
         });
     };
 
-    EnemyManager.prototype.groupHome = function(g, callback) {
+    EnemyManager.prototype.groupHome = function (g) {
         var home = true;
         var i = 0;
 
-        if (callback) {
-            for (i = 0; i < this.group[g].length; i++) {
-                console.log('var i in groupHome = ' + i);
-                if (this.group[g][i].current !== 'removed') {
-                    while (!this.group[g][i].atHome()) {
-
-                    }
+        for (i = 0; i < this.group[g].length; i++) {
+            if (this.group[g][i].current !== 'removed') {
+                if (!this.group[g][i].atHome()) {
+                    return false;
                 }
             }
-            callback();
         }
-        else {
-            for (i = 0; i < this.group[g].length; i++) {
-                if (this.group[g][i].current !== 'removed') {
-                    if (!this.group[g][i].atHome()) {
-                        return false;
-                    }
-                }
-            }
-            return home;
-        }
+        return home;
     };
 
     EnemyManager.prototype.setBrigadeWidth = function() {
@@ -431,8 +374,20 @@ var app = app || {};
         }
     };
 
+    /**
+     * @description Method to reset all enemy state in preparation for new stage.
+     *
+     * @param {Function} callback Will be called once method is complete to notify next stage is ready.
+     * @public
+     */
+    EnemyManager.prototype.resetStage = function() {
+        this.enemies.forEach(function resetEnemy(e) {
+            e.reset();
+        });
+    };
+
     EnemyManager.prototype.onenterstate = function(event, from, to) {
-        console.log('EnemyManager transitioned from: ' + from + ' to: ' + to + ' because of event: ' + event);
+        // console.log('EnemyManager transitioned from: ' + from + ' to: ' + to + ' because of event: ' + event);
     };
 
     /**
@@ -450,7 +405,7 @@ var app = app || {};
     EnemyManager.prototype.onlaunch = function(event, from, to) {
         // Brigade state starts with SLIDE. As the enemies enter the scene and join the brigade
         // they will slide back and forth until all enemies are on screen.
-        this.brigadeState = 'PULSE';
+        this.brigadeState = 'SLIDE';
         // Start with Group 1, set the groupLength attribute to the length of group 1.
         this.groupLength = this.group[1].length;
         this.groupElementCounter = 0;
@@ -506,53 +461,13 @@ var app = app || {};
      * @param event
      * @param from
      * @param to
+     * @param callback To notify caller method is complete.
      */
-    EnemyManager.prototype.onreset = function(event, from, to) {
+    EnemyManager.prototype.onreset = function(event, from, to, callback) {
         this.brigadeCurrentPoint.copy(this.brigadeStartingPoint);
+        this.resetStage();
+        callback();
     };
-
-    EnemyManager.prototype.onleavegroup1 = function() {
-        var self = this;
-        this.groupHome(1, function() {
-            self.transition();
-            console.log('transition from group1 complete');
-        });
-        return StateMachine.ASYNC;
-    };
-
-    EnemyManager.prototype.onleavegroup3 = function() {
-        var self = this;
-        this.groupHome(3, function() {
-            self.transition();
-            console.log('transition from group3 complete');
-        });
-        return StateMachine.ASYNC;
-    };
-
-    EnemyManager.prototype.onleavegroup4 = function() {
-        var self = this;
-        this.groupHome(4, function() {
-            self.transition();
-        });
-        return StateMachine.ASYNC;
-    };
-
-    EnemyManager.prototype.onleavegroup5 = function() {
-        var self = this;
-        this.groupHome(5, function() {
-            self.transition();
-        });
-        return StateMachine.ASYNC;
-    };
-
-    EnemyManager.prototype.onleavegroup6 = function() {
-        var self = this;
-        this.groupHome(6, function() {
-            self.transition();
-        });
-        return StateMachine.ASYNC;
-    };
-
 
     app.EnemyManager = EnemyManager;
 
@@ -569,7 +484,7 @@ StateMachine.create({
         { name: 'nextgroup', from: 'group3',        to: 'group4' },
         { name: 'nextgroup', from: 'group4',        to: 'group5' },
         { name: 'nextgroup', from: 'group5',        to: 'group6' },
-        { name: 'nextgroup', from: 'group6',        to: 'pulse' },
+        { name: 'nextgroup', from: 'group6',        to: 'slide' },
         { name: 'attack',    from: 'slide',         to: 'pulse' },
         { name: 'march',     from: 'pulse',         to: 'slide' },
         { name: 'pulse',     from: 'slide',         to: 'pulse' },

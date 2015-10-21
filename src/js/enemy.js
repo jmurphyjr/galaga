@@ -5,14 +5,6 @@ var app = app || {};
     var states = {
         // attack the start point is currentPosition.
         attack: {
-            //            controlPoints: {
-            //                p1: new app.Point(70, -50),
-            //                p2: new app.Point(0, 250),
-            //                p3: new app.Point(140, 350),
-            //                p4: new app.Point(140, 350),
-            //                p5: new app.Point(500, 300),
-            //                p6: new app.Point(100, 250)
-            //            }
             controlPoints: {
                 p1: new app.Point(70, -50),
                 p2: new app.Point(0, 250),
@@ -259,17 +251,7 @@ var app = app || {};
         if (this.current !== 'removed') {
             this.leave();
         }
-
-
     };
-
-    // Enemy.prototype.setRow = function (row) {
-    //     this.row = row;
-    // };
-    //
-    // Enemy.prototype.setColumn = function (column) {
-    //     this.column = column;
-    // };
 
     Enemy.prototype.setState = function (state) {
         this.state = 'PULSE';
@@ -296,7 +278,7 @@ var app = app || {};
      * @param {Number} lastTime description
      */
     Enemy.prototype.update = function (dt, lastTime) {
-
+        var points = [];
         if (this.destroyed) {
             this.sprite = this.sprites.explosion;
             if (this.frameCounter === null) {
@@ -330,7 +312,7 @@ var app = app || {};
                 // console.log('I will fly in.');
 
                 if (this.enterCoords.length === 0) {
-                    var points = null;
+                    points = null;
                     if (this.group === 1) {
                         this.currentPosition.x = this._game.canvasSize.width / 2;
                         this.currentPosition.y = -50;
@@ -428,7 +410,7 @@ var app = app || {};
             else if (this.current === 'attacking') {
 
                 if (this.attackStart) {
-                    var points = calculateControlPoints('triangle', 'cw', this.currentPosition);
+                    points = calculateControlPoints('triangle', 'cw', this.currentPosition);
                     this.attackStart = false;
                     // console.log(states.attack);
                     this.attackPoints.pushArrayMembers(calculateBezierCurvePoints(points[0], points[1], points[2], points[3]));
@@ -457,7 +439,7 @@ var app = app || {};
             else if (this.current === 'flying') {
                 // this state is just the enemy flying around the screen
                 // no missiles are fired from this state.
-                console.log(this.__objId + ' is flying');
+                // console.log(this.__objId + ' is flying');
             }
         }
     };
@@ -565,7 +547,7 @@ var app = app || {};
      */
 
     Enemy.prototype.onenterstate = function(event, from, to) {
-        console.log('objId: ' + this.__objId + ' event: ' + event + '  from: ' + from + '  to: ' + to);
+        // console.log('objId: ' + this.__objId + ' event: ' + event + '  from: ' + from + '  to: ' + to);
         this.previousstate = from;
 
     };
@@ -586,7 +568,7 @@ var app = app || {};
     };
 
     Enemy.prototype.onleaveentering = function() {
-        // return StateMachine.ASYNC;
+
     };
 
     /**
@@ -601,11 +583,6 @@ var app = app || {};
      * @param to
      */
     Enemy.prototype.onlineup = function(event, from, to) {
-        // this._em.brigadeCurrentPoint = this._em.brigadeStartingPoint;
-        // var xMove = this._em.brigadeStartingPoint.x + (this.column - this._em.brigadeStartColumn) * this._game.cellSize;
-        // var yMove = this._em.brigadeStartingPoint.y + (this.row - this._em.brigadeStartRow) * this._game.cellSize;
-        // this.currentPosition.x = xMove;
-        // this.currentPosition.y = yMove;
 
     };
 
@@ -673,7 +650,7 @@ var app = app || {};
     Enemy.prototype.onleave = function(event, from, to) {
         this.currentPosition.x = -100;
         this.currentPosition.y = -100;
-        console.log('onleave event: ' + event + ' from: ' + from + ' to: ' + to);
+        // console.log('onleave event: ' + event + ' from: ' + from + ' to: ' + to);
     };
 
 

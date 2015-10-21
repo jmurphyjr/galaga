@@ -34,10 +34,6 @@ var app = app || {};
         }
     };
 
-    // Missile.prototype.render = function(ctx) {
-    //     ctx.drawImage(Resources.get(this.sprite), this.currentPosition.x, this.currentPosition.y, 26 * 0.25, 50 * 0.25);
-    // };
-
     app.Missile = Missile;
 
 })();

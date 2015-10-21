@@ -123,7 +123,7 @@ var calculateCurveLength = function(c) {
             length += diff;
         }
     }
-    console.log(length / 100);
+    // console.log(length / 100);
     return length / 100;
 };
 
@@ -326,14 +326,14 @@ var polySimplify = function(V, tol) {
     // liable for any real or imagined damage resulting from its use.
     // Users of this code must verify correctness for their application.
     // http://softsurfer.com/Archive/algorithm_0205/algorithm_0205.htm
-    var sum = function(u, v) {return [u[0] + v[0], u[1] + v[1]];}
-    var diff = function(u, v) {return [u[0] - v[0], u[1] - v[1]];}
-    var prod = function(u, v) {return [u[0] * v[0], u[1] * v[1]];}
-    var dot = function(u, v) {return u[0] * v[0] + u[1] * v[1];}
-    var norm2 = function(v) {return v[0] * v[0] + v[1] * v[1];}
-    var norm = function(v) {return Math.sqrt(norm2(v));}
-    var d2 = function(u, v) {return norm2(diff(u, v));}
-    var d = function(u, v) {return norm(diff(u, v));}
+    var sum = function(u, v) {return [u[0] + v[0], u[1] + v[1]];};
+    var diff = function(u, v) {return [u[0] - v[0], u[1] - v[1]];};
+    var prod = function(u, v) {return [u[0] * v[0], u[1] * v[1]];};
+    var dot = function(u, v) {return u[0] * v[0] + u[1] * v[1];};
+    var norm2 = function(v) {return v[0] * v[0] + v[1] * v[1];};
+    var norm = function(v) {return Math.sqrt(norm2(v));};
+    var d2 = function(u, v) {return norm2(diff(u, v));};
+    var d = function(u, v) {return norm(diff(u, v));};
 
     var simplifyDP = function(tol, v, j, k, mk) {
         //  This is the Douglas-Peucker recursive simplification routine
@@ -388,7 +388,7 @@ var polySimplify = function(V, tol) {
         }
         // else the approximation is OK, so ignore intermediate vertices
         return;
-    }
+    };
 
     var n = V.length;
     var sV = [];
@@ -424,4 +424,4 @@ var polySimplify = function(V, tol) {
         }
     }
     return sV;
-}
+};
