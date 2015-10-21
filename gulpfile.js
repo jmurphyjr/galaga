@@ -154,7 +154,7 @@ gulp.task('jasmine', function() {
 
 gulp.task('watch', function() {
     plugins.livereload.listen();
-    var filesToWatch = ['SpecRunner.html', 'gulpfile.js', 'src/**/*.js', 'spec/**/*_spec.js'];
+    var filesToWatch = ['SpecRunner.html', 'src/index.html', 'src/css/main.css', 'gulpfile.js', 'src/**/*.js', 'spec/**/*_spec.js'];
     gulp.watch(filesToWatch, ['lint:js']);
 });
 // ---------------------------------------------------------------------
