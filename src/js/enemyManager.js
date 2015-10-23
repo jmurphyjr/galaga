@@ -4,8 +4,6 @@
 var app = app || {};
 (function () {
     function EnemyManager(cWidth, cHeight) {
-        // public properties
-        // Valid brigadeState = 'SLIDE', 'PULSE', 'BEGIN'
         this.brigadeState = 'OFF';
 
         this._game = game instanceof app.Game ? game : new app.Game();
@@ -44,37 +42,12 @@ var app = app || {};
          * @private
          */
         this._brigadeSlideDirection = +1;
-        this._brigadePulseStartPoint = new app.Point(cWidth / 2, 70);
-        this._brigadePulseMaxOffset = 20;
-        this._brigadePulseCurrentPoint = new app.Point();
-        /**
-         * @description The y offset between rows
-         * @property _rowOffset
-         * @type {Number}
-         * @private
-         */
-        this._rowOffset = 30;
-        /**
-         * @description The top row green enemies are slightly larger
-         * thus need to nudge the green enemies starting location
-         * @property _greenRowNudge
-         * @type {Number}
-         * @private
-         */
-        this._greenRowNudge = 10;
-        /**
-         * @description The x offset between columns
-         * @property _columnOffset
-         * @type {Number}
-         * @private
-         */
-        this._columnOffset = 30;
+
         /**
          * @property enemies
          * @type {Array}
          */
         this.enemies = [];
-        this._destroyedEnemies = [];
 
         this.csize = this._game.getCanvasSize();
 
@@ -90,11 +63,15 @@ var app = app || {};
         this.groupElementCounter = 0;
         this.groupLength = 0;
         this.groupLaunchTimer = 0;
-        this.groupLaunchDelay = 2000;
+        this.groupLaunchDelay = 0;
         this.doLaunch = true;
 
         this.groupEnemyTimer = 0;
         this.groupEnemyDelay = 100;
+
+        // Variables related to launching attacks.
+        this.attackTimer = 0;
+        this.attackMultiplier = 5000;  // Will be used to create a variable attackTimer
     }
 
     /**
@@ -181,27 +158,6 @@ var app = app || {};
                 this.enemies.push(enemy);
             }
         }
-        var ul = game.root.document.createElement('ul');
-        ul.setAttribute('id', 'list');
-        this.enemies.forEach(function addTestData(e) {
-            var li = game.root.document.createElement('li');
-            li.setAttribute('id', e.__objId);
-            li.appendChild(game.root.document.createTextNode('x: ' + e.currentPosition.x.toFixed(1) + ' y: ' + e.currentPosition.y.toFixed(1)));
-            ul.appendChild(li);
-
-        });
-        // game.root.document.getElementById('enemyInfo').appendChild(ul);
-    };
-
-    /**
-     * Array Filter function to retrieve all of the enemies that have been destroyed.
-     *
-     * @method
-     * @param  {Enemy|GreenEnemy}  value An instance of either Enemy or GreenEnemy
-     * @return {Boolean}       The value of the destroyed attribute.
-     */
-    EnemyManager.prototype.isDestroyed = function (value) {
-        return value.destroyed;
     };
 
     /**
@@ -233,7 +189,6 @@ var app = app || {};
                 this.group[this.groupCounter][this.groupElementCounter].start();
                 this.groupEnemyTimer = lastTime + this.groupEnemyDelay;
                 this.groupElementCounter++;
-                this.groupLaunchTimer = lastTime + this.groupLaunchDelay;
             }
         }
 
@@ -250,11 +205,11 @@ var app = app || {};
      * @param lastTime
      */
     EnemyManager.prototype.update = function (dt, lastTime) {
+        var self = this;
         if (this.current === 'group1') {
             if (lastTime > this.groupEnemyTimer) {
                 if (this.groupElementCounter === this.groupLength) {
 
-                    // if (lastTime > this.groupLaunchTimer) {
                     // Check that all group1 elements are home before calling next group.
                     if (this.groupHome(1)) {
                         this.nextgroup();
@@ -319,17 +274,39 @@ var app = app || {};
 
             this.enemies.forEach(function setEnemyPulseDirection(e) {
                 e.state = 'PULSE';
-                e.pulseDirection = this.brigadePulseDirection;
-                e.update(dt, lastTime);
-                // game.root.document.getElementById(entity.__objId).innerHTML = 'Column: ' + entity.column + ' x: ' + entity.currentPosition.x.toFixed(1) + ' y: ' + entity.currentPosition.y.toFixed(1);;
+                e.pulseDirection = self.brigadePulseDirection;
+                // e.update(dt, lastTime);
 
             });
         }
         this.enemies.forEach(function updateEnemyBegin(e) {
             e.update(dt, lastTime);
-            // game.root.document.getElementById(entity.__objId).innerHTML = 'Column: ' + entity.column + ' x: ' + entity.currentPosition.x.toFixed(1) + ' y: ' + entity.currentPosition.y.toFixed(1);;
-
         });
+
+        if (lastTime > this.attackTimer && (this.current === 'slide' || this.current === 'pulse')) {
+            // Get a variable enemy and set it to attack
+            var eLeft = game.enemyManager.enemiesLeft();
+            var enemy = variableInteger(eLeft.length, 0);
+            var enemySearch = true;
+
+            while (enemySearch) {
+                try {
+                    eLeft[enemy].attack();
+                    enemySearch = false;
+                    this.attackTimer = lastTime + variableInteger(this.attackMultiplier, 500);
+                }
+                catch (e) {
+                    eLeft = game.enemyManager.enemiesLeft();
+                    enemy = variableInteger(eLeft.length, 0);
+                    if (eLeft.length >= 1 && eLeft[enemy].current !== 'brigade') {
+                        enemySearch = false;
+                    }
+                    else if (eLeft.length === 0) {
+                        enemySearch = false;
+                    }
+                }
+            }
+        }
 
     };
 
@@ -381,6 +358,7 @@ var app = app || {};
      * @public
      */
     EnemyManager.prototype.resetStage = function() {
+        this.brigadeCurrentPoint.copy(this.brigadeStartingPoint);
         this.enemies.forEach(function resetEnemy(e) {
             e.reset();
         });
@@ -447,6 +425,7 @@ var app = app || {};
     };
 
     EnemyManager.prototype.onmarch = function(event, from, to) {
+        this.brigadeState = 'SLIDE';
 
     };
 
@@ -464,9 +443,13 @@ var app = app || {};
      * @param callback To notify caller method is complete.
      */
     EnemyManager.prototype.onreset = function(event, from, to, callback) {
-        this.brigadeCurrentPoint.copy(this.brigadeStartingPoint);
         this.resetStage();
         callback();
+    };
+
+    EnemyManager.prototype.onpulse = function() {
+        // this.brigadePulseTimer = Date.now()
+        this.brigadeState = 'PULSE';
     };
 
     EnemyManager.prototype.onrestart = function() {
@@ -475,6 +458,9 @@ var app = app || {};
         });
     };
 
+    EnemyManager.prototype.onleavegroup6 = function() {
+        this.attackTimer = Date.now() + variableInteger(this.attackMultiplier, 500);
+    };
     app.EnemyManager = EnemyManager;
 
 }());

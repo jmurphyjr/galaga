@@ -146,28 +146,11 @@ var app = app || {};
 
         this.cellSize = 40;
 
-        /**
-         * Maximum number of Rows (divide canvas height by 40)
-         * @property maxRows
-         * @type {number}
-         */
-        this.maxRows = this.canvasSize.height / this.cellSize;
-
-        /**
-         * Maximum number of Columns (divide canvas width by 40)
-         * @property maxColumns
-         * @type {number}
-         */
-        this.maxColumns = this.canvasSize.width / this.cellSize;
-
-        this.gameTimer = 0;
-        this.gameMenuDelay = 5000;
-
         // Menu Timers
-        this.introTimer = 0;     // Will wait 4000 msecs
-        this.startTimerOne = 0;  // Will wait 2000 msecs
-        this.startTimerTwo = 0;  // Will wait 2000 msecs
-        this.summaryTimer = 0;   // Will wait 4000 msecs
+        this.introTimer = 0;
+        this.startTimerOne = 0;
+        this.startTimerTwo = 0;
+        this.summaryTimer = 0;
 
         var dt = 0;
         var lastTime = Date.now();
@@ -177,18 +160,14 @@ var app = app || {};
         var entities = [];
 
         var doc = null;
-        var f = null;
         var canvas = null;
         var ctx = null;
-
-        var whichScreen = 'start';
 
         function screenDefault() {
             ctx.font = '900 24px Arial';
             ctx.fillStyle = 'red';
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(Resources.get('images/space-larger.png'), 0, 0);
-            // ctx.rect(0,0, canvas.width, canvas.height);
             ctx.textAlign = 'center';
             ctx.fillText('1UP', 40, 25);
             ctx.fillText('HIGH SCORE', ((canvas.width / 2)), 25);
@@ -228,7 +207,12 @@ var app = app || {};
                     if (m.destroyed) {
                         self.missiles.splice(i, 1);
                     }
-                    else if (m.currentPosition.y < 0) {
+                    else if (m.currentPosition.y < 0 && m.owner === 'player') {
+                        // Remove player missiles once they have left top of screen
+                        self.missiles.splice(i, 1);
+                    }
+                    else if (m.currentPosition.y > canvas.height && m.owner === 'enemy') {
+                        // Remove enemy missiles once they have left bottom of screen
                         self.missiles.splice(i, 1);
                     }
                     else {
@@ -243,11 +227,8 @@ var app = app || {};
         function collissionDetection() {
             var e = self.enemyManager.enemies;
             var p = self.player;
-            // Check enemy collission with player
 
-            // Check enemy collission with player missiles
-
-            // Check enemy collission with player missiles
+            // Check player and enemy collissions with missiles.
             self.missiles.forEach(function (m) {
                 if (m.owner === 'player') {
                     for (var i = e.length - 1; i >= 0; i--) {
@@ -271,14 +252,19 @@ var app = app || {};
                         m.currentPosition.y < p.currentPosition.y + p.rect.height - 10 &&
                         m.currentPosition.y + m.rect.height > p.currentPosition.y) {
                         // console.log('enemy missile collided with player');
-                        p.setDestroy();
-                        m.setDestroy();
+                        if (!p.destroyed) {
+                            p.killed();
+                            m.setDestroy();
+                        }
                     }
                 }
 
             });
         }
 
+        /**
+         *
+         */
         function addPlayerLives() {
             for (var i = 0; i < self.player.lives - 1; i++) {
                 ctx.drawImage(Resources.get('images/galaga-white-fighter.png'), ((i * 40) + 25), canvas.height - 50, 138 * 0.23, 145 * 0.23);
@@ -322,9 +308,15 @@ var app = app || {};
                 }
             }
             else if (self.current === 'summary') {
-                ctx.fillStyle = 'red';
-                ctx.fillText('SHOTS FIRED: ' + self.playerShots, canvas.width / 2 + 25, canvas.height * 0.44);
-                ctx.fillText('ENEMIES KILLED: ' + self.enemiesKilled, canvas.width / 2, canvas.height * 0.48);
+                ctx.fillStyle = 'yellow';
+                ctx.textAlign = 'right';
+                ctx.fillText('SHOTS FIRED:', canvas.width / 2 - 5, canvas.height * 0.44);
+                ctx.fillText('ENEMIES KILLED:', canvas.width / 2 - 5, canvas.height * 0.48);
+                ctx.fillText('EFFICIENY:', canvas.width / 2 - 5, canvas.height * 0.52);
+                ctx.textAlign = 'left';
+                ctx.fillText(self.playerShots.toString(), canvas.width / 2 + 10, canvas.height * 0.44);
+                ctx.fillText(self.enemiesKilled.toString(), canvas.width / 2 + 10, canvas.height * 0.48);
+                ctx.fillText(((self.enemiesKilled / self.playerShots) * 100).toFixed(0) + '%', canvas.width / 2 + 10, canvas.height * 0.52);
             }
             else if (self.current === 'active') {
                 self.enemyManager.render(ctx);
@@ -430,14 +422,12 @@ var app = app || {};
             update(dt, lastTime);
             render(lastTime);
             lastTime = now;
-            f.innerHTML = 'Frames / second: ' + fps.getFPS();
             win.requestAnimationFrame(main);
         }
 
         this.initialize = function () {
             win = this.root.window;
             doc = this.root.document;
-            f = doc.querySelector("#framespersecond");
             canvas = doc.createElement('canvas');
             canvas.width = this.canvasSize.width;
             canvas.height = this.canvasSize.height;
@@ -479,6 +469,7 @@ var app = app || {};
             self.missiles = [];
             self.playerShots = 0;
             self.enemiesKilled = 0;
+            self.enemyManager.resetStage();
             // console.log(callback);
             callback();
         };
@@ -501,13 +492,18 @@ var app = app || {};
         return this.canvasSize;
     };
 
-    Game.prototype.fireMissile = function (who) {
-        this.missiles.push(new app.Missile(this.player.currentPosition, who));
+    Game.prototype.fireMissile = function (who, cp) {
+        if (who === 'player') {
+            this.missiles.push(new app.Missile(this.player.currentPosition, who));
+        }
+        else if (who === 'enemy') {
+            this.missiles.push(new app.Missile(cp, who));
+        }
         // console.log('fired missile');
     };
 
     Game.prototype.onenterstate = function(event, from, to) {
-        console.log('game.js - onEvent ' + event + ' from: ' + from + ' to: ' + to);
+        // console.log('game.js - onEvent ' + event + ' from: ' + from + ' to: ' + to);
     };
 
     Game.prototype.onenterintro = function() {
@@ -570,7 +566,10 @@ var app = app || {};
     Game.prototype.ontryagain = function() {
         this.player.lives = 3;
         this.player.score = 0;
+        this.stage = 1;
+        console.log('currentPosition: before clone' + this.player.currentPosition);
         this.player.currentPosition = this.player.startingPosition.clone();
+        console.log('currentPosition: after clone' + this.player.currentPosition);
     };
 
     app.Game = Game;

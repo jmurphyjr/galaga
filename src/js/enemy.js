@@ -158,15 +158,21 @@ var app = app || {};
          * @default ENTER
          */
         this.state = 'NONE';
-        this.offset = 0;
+
         /**
          * Movement direction for this enemy.
          * @property direction
          * @type {number}
-         * @default +1 (Positive X (right) or Positive Y (down)
+         * @default +1 (Positive X (right) or Negative X (left)
          */
         this.direction = +1;
 
+        /**
+         * Vertical movement direction for this enemy in pulse state.
+         * @property vertDirection
+         * @type {number}
+         * @default +1 (Positive Y (down) or Negative Y (up)
+         */
         this.vertDirection = +1;
 
         /**
@@ -175,28 +181,36 @@ var app = app || {};
          * @default false
          */
         this.attackStart = false;
+
         /**
          * @property attackPoints Holds the Point objects for an enemy flight path during attack
          * @type {Array}
          */
         this.attackPoints = [];
+
         /**
          * @property {Array} attackAngles Holds the angles associated with the enemy flight path during attack
          * @type {Array}
          */
         this.attackAngles = [];
+
         /**
          * @description Tracks current location within the attackPoints and attackAngles arrays.
          * @property attackIndex
          * @type Array
          */
         this.attackIndex = 0;
+
         /**
          * @description Used to limit the movement.
          */
         this.attackTimer = 0;
         this.attackMovementSpacing = 50;
-        this.attackMissileCounter = 3;
+        this.attackMissileCounter = 0;
+
+        this.missileFireTimer = 0;
+        this.missileFireDelay = 500;
+        this.maxMissilesToFire = 5;
 
         /**
          * The row the enemy exists, within the Brigade.
@@ -204,6 +218,7 @@ var app = app || {};
          * @type {Number}
          */
         this.row = null;
+
         /**
          * The column the enemy exists, within the Brigade.
          * @property column
@@ -214,13 +229,10 @@ var app = app || {};
         this.explosionTimer = 0;
         this.explosionDelay = 2;
 
+
         this.scoreValue = 200;
 
         this.pulseSide = null;
-        this.pulseBoundary = this.column * 2 || 0;
-        this.pulseDirection = null;
-        this.pulseStartPosition = null;
-        this.pulseStartFlag = false;
         this.previousstate = null;
 
         this.enterCoords = [];
@@ -228,29 +240,28 @@ var app = app || {};
         this.enterTimer = 0;
         this.enterDelay = 20;
         this.enterIndex = 0;
-        this.enterStart = true;
 
         this.group = null;
     };
+
     Enemy.prototype = Object.create(app.Entity.prototype);
     Enemy.prototype.constructor = Enemy;
 
     Enemy.prototype.getPointValue = function () {
-        return this.scoreValue;
+        var pointReturn = this.scoreValue;
+        if (this.previousstate === 'attacking') {
+            pointReturn = 1000;
+        }
+        return pointReturn;
     };
 
     Enemy.prototype.reset = function () {
-        this.deleteMe = false;
         this.destroyed = false;
         this.sprite = this.sprites[this.type];
         this.frameCounter = 0;
         this.enterIndex = 0;
-        // this.state = 'SLIDE';
         this.currentPosition.x = -100;
         this.currentPosition.y = -100;
-        // if (this.current !== 'removed') {
-        //     this.leave();
-        // }
         this.current = 'removed';
     };
 
@@ -295,7 +306,6 @@ var app = app || {};
 
             if (this.frameCounter >= (Object.keys(this.sprite.frames).length - 1)) {
                 // console.log('Entity id: ' + this.__objId + '  frameCounter: ' + this.frameCounter);
-                // this.deleteMe = true;
                 if (this.destroyed && this.current === 'destroyed') {
                     this.leave();
                 }
@@ -386,9 +396,8 @@ var app = app || {};
                         }
                         this._pulseEnemy(this);
 
-                        xMove = dt * 20 * Math.abs((7.5 - this.column)) * this.direction;
+                        xMove = dt * 1 * Math.abs((7.5 - this.column)) * this.direction;
 
-                        this.lastPosition = this.currentPosition;
                         this.currentPosition.x += xMove;
 
                         if (this.type !== 'green' || this.type !== 'blue') {
@@ -429,25 +438,21 @@ var app = app || {};
                                 this.attackIndex = 0;
                                 this.lineup();
                             }
-                            if (lastTime > this.missileFireTimer) {
-
+                            if (lastTime > this.missileFireTimer && this.attackMissileCounter < this.maxMissilesToFire) {
+                                game.fireMissile('enemy', this.currentPosition);
+                                this.missileFireTimer = lastTime + this.missileFireDelay;
+                                this.attackMissileCounter += 1;
                             }
                             this.attackTimer = lastTime + this.attackMovementSpacing;
                         }
                     }
                 }
             }
-            else if (this.current === 'flying') {
-                // this state is just the enemy flying around the screen
-                // no missiles are fired from this state.
-                // console.log(this.__objId + ' is flying');
-            }
         }
     };
 
     Enemy.prototype.render = function (ctx) {
         // console.log(this.currentPosition);
-        // if (this.destroyed) {
         if (this.destroyed && this.current === 'destroyed') {
 
             renderDestroyed(this, ctx);
@@ -528,13 +533,17 @@ var app = app || {};
      */
     Enemy.prototype.atHome = function() {
         var atHome = false;
-        var xHome = this._em.brigadeCurrentPoint.x + (this.column - game.enemyManager.brigadeStartColumn) * game.cellSize;
-        var yHome = this._em.brigadeCurrentPoint.y + (this.row - game.enemyManager.brigadeStartRow) * game.cellSize;
-
-        if ((xHome < (this.currentPosition.x + 1) && xHome > (this.currentPosition.x - 1)) && (yHome < (this.currentPosition.y + 1) && yHome > (this.currentPosition.y - 1))) {
+        if (game.enemyManager.brigadeState === 'PULSE') {
             atHome = true;
         }
+        else {
+            var xHome = this._em.brigadeCurrentPoint.x + (this.column - game.enemyManager.brigadeStartColumn) * game.cellSize;
+            var yHome = this._em.brigadeCurrentPoint.y + (this.row - game.enemyManager.brigadeStartRow) * game.cellSize;
 
+            if ((xHome < (this.currentPosition.x + 5) && xHome > (this.currentPosition.x - 5)) && (yHome < (this.currentPosition.y + 5) && yHome > (this.currentPosition.y - 5))) {
+                atHome = true;
+            }
+        }
         return atHome;
     };
 
@@ -605,7 +614,9 @@ var app = app || {};
      * @param to
      */
     Enemy.prototype.onattack = function(event, from, to) {
+        this.attackMissileCounter = 0;
         this.attackStart = true;
+        this.missileFireTimer = Date.now();
 
     };
 

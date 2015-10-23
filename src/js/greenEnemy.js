@@ -45,17 +45,10 @@ var app = app || {};
          * @default 2
          */
         this.HealthCounter = 2;
-
-
     }
 
     GreenEnemy.prototype = Object.create(app.Enemy.prototype);
     GreenEnemy.prototype.constructor = GreenEnemy;
-
-    // GreenEnemy.prototype.update = function() {
-    //   this.currentPosition.x = 100;
-    //   this.currentPosition.y = 400;
-    // };
 
     /**
      * Set destroy to true on entity.
@@ -73,23 +66,27 @@ var app = app || {};
     };
 
     GreenEnemy.prototype.getPointValue = function () {
+        var pointValue = 0;
         if (this.destroyed) {
-            return this.scoreValue;
+            if (this.previousstate === 'attacking') {
+                pointValue = 1000;
+            }
+            else {
+                pointValue = this.scoreValue;
+            }
         }
-        else {
-            return 0;
-        }
+        return pointValue;
     };
 
     GreenEnemy.prototype.reset = function () {
         this.HealthCounter = 2;
         this.frameCounter = 0;
-        this.deleteMe = false;
         this.destroyed = false;
         this.sprite = this.sprites[this.type];
         this.enterIndex = 0;
         this.currentPosition.x = -100;
         this.currentPosition.y = -100;
+        this.current = 'removed';
 
     };
     /**
@@ -101,7 +98,7 @@ var app = app || {};
      * @param from
      * @param to
      */
-    GreenEnemy.prototype.onkilled = function(event, from, to) {
+    GreenEnemy.prototype.onkilled = function (event, from, to) {
         this.setDestroy();
 
     };

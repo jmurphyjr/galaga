@@ -30,7 +30,7 @@ var app = app || {};
             this.currentPosition.y += dt * MISSILE_SPEED * -1;
         }
         else {
-            this.currentPosition.y -= dt * MISSILE_SPEED;
+            this.currentPosition.y += dt * MISSILE_SPEED;
         }
     };
 

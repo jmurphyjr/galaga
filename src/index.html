@@ -5,50 +5,41 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Udacity Front-End Nanodegree • Project 3 Galaga</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css">
+    <link rel="stylesheet" href="css/normalize.css">
     <link rel="stylesheet" href="css/main.css">
 </head>
 
 <body>
 <div class="grid">
     <div class="row">
-            <div class="center">
-                <img class="center" src="images/galaga-logo.png" alt="GALAGA" sizes="20vw" srcset="images/galaga-logo-100.png 100w,images/galaga-logo-160 160w">
-            </div>
-
+        <div class="center">
+            <img class="center" src="images/galaga-logo.png" alt="GALAGA" sizes="20vw"
+                 srcset="images/galaga-logo-100.png 100w,images/galaga-logo-160.png 160w">
+        </div>
     </div>
-    <div class="row"><div class="center" id="framespersecond"></div></div>
     <div class="row">
         <div id="gameboard" class="center">
         </div>
     </div>
     <div class="row">
         <footer id="info">
-
-            <h1 class="author center">Jack Murphy</h1>
             <ul>
                 <li>
-                    <a target="_blank" href="https://github.com/genuine-kavalla" class="faded hover sprite github"
+                    <a target="_blank" href="https://github.com/genuine-kavalla/galaga" class="sprite github"
                        style="opacity: 0.45;">Github</a>
                 </li>
                 <li>
                     <a target="_blank" href="https://www.linkedin.com/in/jackmurphyjr"
-                       class="faded hover sprite linkedin" style="opacity: 0.45;">LinkedIn</a>
+                       class="sprite linkedin" style="opacity: 0.45;">LinkedIn</a>
                 </li>
             </ul>
         </footer>
     </div>
 
 </div>
-<section id="scoreboard">
-    <div id="enemyInfo"></div>
-    <div id="brigadeInfo"></div>
-</section>
 
-<script src="js/libs/jquery.min.js"></script>
 <script src="js/libs/firebase.js"></script>
 <script src="js/libs/state-machine.js"></script>
-<script src="js/libs/knockout-3.2.0.js"></script>
 <script src="js/point.js"></script>
 <script src="js/entity.js"></script>
 <script src="js/missiles.js"></script>

@@ -42,26 +42,20 @@ var app = app || {};
         this._em = this._game.enemyManager instanceof app.EnemyManager ? game.enemyManager : new app.EnemyManager();
 
 
-        /**
-         *
-         * @type {Object|string}
-         */
-
         this.sprite = sprite || '';
         this.hasSpriteSheet = (sprite.sprite) ? true : false;
         this.spriteFrame = 0;
         this.destroyed = false;
-        this.deleteMe = false;
         this.startingPosition = new app.Point(startingPosition.x, startingPosition.y) || {};
         this.currentPosition = this.startingPosition.clone();
-        this.lastPosition = startingPosition;
+
         this.x = this.startingPosition.x || 0;
         this.y = this.startingPosition.y || 0;
-        var imgW = this.sprite.size.width * this.sprite.scale;
+        var imgW = this.sprite.size.width * this.sprite.scale - 10;
         var imgH = this.sprite.size.height * this.sprite.scale;
         if (this.sprite.image !== '') {
             this.rect = {
-                x: this.x,
+                x: this.x + 5,
                 y: this.y,
                 width: imgW,
                 height: imgH
@@ -74,15 +68,17 @@ var app = app || {};
                 height: null
             };
         }
-        this.frameCounter = null;
+        this.frameCounter = 0;
         this.speed = 0;
         this.type = type || '';
+
         /**
          * @description Row entity resides in. Only set for enemy entities.
          * @property row
          * @type {Number}
          */
         this.row = null;
+
         /**
          * @description Column entity resides in. Only set for enemy entities.
          * @property column
@@ -92,11 +88,11 @@ var app = app || {};
     };
     /**
      * Sets the row enemy is located. Rows are numbered 1 - 5.
-     *   - Row 1 - Green/Blue Enemies (starts @ y = 100)
-     *   - Row 2 - Blue Enemies       (starts @ y = 140)
-     *   - Row 3 - Blue Enemies       (starts @ y = 170)
-     *   - Row 4 - Yellow Enemies     (starts @ y = 200)
-     *   - Row 5 - Yellow Enemies     (starts @ y = 230)
+     *   - Row 1 - Green/Blue Enemies
+     *   - Row 2 - Blue Enemies
+     *   - Row 3 - Blue Enemies
+     *   - Row 4 - Yellow Enemies
+     *   - Row 5 - Yellow Enemies
      *
      * @method
      * @param {Number} inRow
@@ -108,6 +104,7 @@ var app = app || {};
             this.row = Number(inRow);
         }
     };
+
     /**
      * Sets the column enemy is located. Columns are numbered 1 - 10.
      * @method
@@ -120,31 +117,6 @@ var app = app || {};
             this.column = Number(col);
         }
     };
-    /**
-     * Get the current position of this entity
-     *
-     * @returns {Point|*}
-     */
-    Entity.prototype.getCurrentPosition = function() {
-        return this.currentPosition;
-    };
-    /**
-     * Get the last position of this entity
-     *
-     * @returns {Point|*}
-     */
-    Entity.prototype.getLastPosition = function() {
-        return this.lastPosition;
-    };
-    /**
-     * Get starting position for this entity
-     *
-     * @returns {Point|*}
-     * @method
-     */
-    Entity.prototype.getStartingPosition = function() {
-        return this.startingPosition;
-    };
 
     /**
      * Set destroy to true on entity.
@@ -153,6 +125,7 @@ var app = app || {};
     Entity.prototype.setDestroy = function() {
         this.destroyed = true;
     };
+
     /**
      * Renders the entity on the canvas context
      *
