@@ -2,8 +2,8 @@ var fs = require('fs');
 var path = require('path');
 
 var gulp = require('gulp');
-// var livereload = require('gulp-livereload');
-
+var uglify = require('gulp-uglify');
+var minifyCss = require('gulp-minify-css');
 
 // Load all gulp plugins automatically
 // and attach them to the `plugins` object
@@ -78,12 +78,8 @@ gulp.task('clean', function (done) {
 });
 
 gulp.task('copy', [
-    // 'copy:.htaccess',
     'copy:index.html',
-    // 'copy:jquery',
-    // 'copy:jqueryui',
-    // 'copy:license',
-    'copy:main.css',
+    // 'copy:main.css',
     'copy:misc',
     'copy:normalize'
 ]);
@@ -117,7 +113,8 @@ gulp.task('copy:misc', function () {
         // Exclude the following files
         // (other tasks will handle the copying of these files)
         '!' + dirs.src + '/css/main.css',
-        '!' + dirs.src + '/index.html'
+        '!' + dirs.src + '/index.html',
+        '!' + dirs.src + '/js/*.js'
 
     ], {
 
@@ -157,6 +154,19 @@ gulp.task('watch', function() {
     var filesToWatch = ['SpecRunner.html', 'src/index.html', 'src/css/main.css', 'gulpfile.js', 'src/**/*.js', 'spec/**/*_spec.js'];
     gulp.watch(filesToWatch, ['lint:js']);
 });
+
+gulp.task('minify-js', function() {
+    gulp.src('src/js/*.js')
+        .pipe(uglify())
+        .pipe(gulp.dest(dirs.dist + '/js'));
+});
+
+gulp.task('minify-css', function() {
+    gulp.src(dirs.src + '/css/main.css')
+        .pipe(minifyCss())
+        .pipe(gulp.dest(dirs.dist + '/css'));
+});
+
 // ---------------------------------------------------------------------
 // | Main tasks                                                        |
 // ---------------------------------------------------------------------
@@ -171,7 +181,8 @@ gulp.task('archive', function (done) {
 
 gulp.task('build', function (done) {
     runSequence(
-        ['clean', 'lint:js', 'test:run'],
+        'clean',
+        ['lint:js', 'minify-js', 'minify-css'],
         'copy',
     done);
 });
