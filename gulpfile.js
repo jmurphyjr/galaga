@@ -4,6 +4,7 @@ var path = require('path');
 var gulp = require('gulp');
 var uglify = require('gulp-uglify');
 var minifyCss = require('gulp-minify-css');
+var imagemin = require('gulp-imagemin');
 
 // Load all gulp plugins automatically
 // and attach them to the `plugins` object
@@ -114,7 +115,8 @@ gulp.task('copy:misc', function () {
         // (other tasks will handle the copying of these files)
         '!' + dirs.src + '/css/main.css',
         '!' + dirs.src + '/index.html',
-        '!' + dirs.src + '/js/*.js'
+        '!' + dirs.src + '/js/*.js',
+        '!' + dirs.src + '/images/*.png'
 
     ], {
 
@@ -167,6 +169,12 @@ gulp.task('minify-css', function() {
         .pipe(gulp.dest(dirs.dist + '/css'));
 });
 
+gulp.task('png', function() {
+    return gulp.src(dirs.src + '/images/*.png')
+        .pipe(imagemin({ progressive: true, optimizationLevel: 5 }))
+        .pipe(gulp.dest(dirs.dist + '/images'));
+});
+
 // ---------------------------------------------------------------------
 // | Main tasks                                                        |
 // ---------------------------------------------------------------------
@@ -182,7 +190,7 @@ gulp.task('archive', function (done) {
 gulp.task('build', function (done) {
     runSequence(
         'clean',
-        ['lint:js', 'minify-js', 'minify-css'],
+        ['lint:js', 'minify-js', 'minify-css', 'png'],
         'copy',
     done);
 });
